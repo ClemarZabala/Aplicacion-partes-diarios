@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Control de Partes — Luciano S.A.</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+</head>
+
+<body>
+  <!-- LOADER -->
+  <div id="appLoader" class="app-loader hidden">
+    <div class="spinner"></div>
+    <p>Cargando…</p>
+  </div>
+
+  <div class="layout">
+    <!-- SIDEBAR -->
+    <aside id="sidebar" class="sidebar hidden">
+      <div class="brand">
+        <div class="brand-icon"><i class="fa-solid fa-gear"></i></div>
+        <div>
+          <div class="title">Control de Partes</div>
+          <div class="subtitle">Luciano S.A.</div>
+        </div>
+      </div>
+
+      <nav class="menu">
+        <button class="menu-item tab-btn active" data-tab="dashboard"><i class="fa-solid fa-chart-line"></i> Resumen</button>
+        <button class="menu-item tab-btn" data-tab="usuarios"><i class="fa-solid fa-user-group"></i> Usuarios</button>
+        <button class="menu-item tab-btn" data-tab="internos"><i class="fa-solid fa-truck-front"></i> Internos</button>
+        <button class="menu-item tab-btn" data-tab="partes"><i class="fa-solid fa-clipboard-list"></i> Partes</button>
+        <button class="menu-item tab-btn" data-tab="service"><i class="fa-solid fa-screwdriver-wrench"></i> Service</button>
+        <button class="menu-item tab-btn" data-tab="sinpartes"><i class="fa-regular fa-clock"></i> Sin partes (≥5 días)</button>
+      </nav>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+      <!-- TOPBAR (visible en admin) -->
+      <header class="topbar hidden" id="topbar">
+        <div class="topbar-left">
+          <button id="sidebarToggle" class="btn icon" title="Menú">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+          <h1 class="topbar-title">Panel</h1>
+        </div>
+        <div class="topbar-right">
+          <div class="user-pill">
+            <i class="fa-regular fa-circle-user"></i>
+            <span id="userActive">Usuario</span>
+            <button id="btnSalirAdmin" class="btn text danger"><i class="fa-solid fa-right-from-bracket"></i> Salir</button>
+          </div>
+        </div>
+      </header>
+
+      <!-- LOGIN -->
+      <section id="login-section" class="login-screen card p-24">
+        <div class="login-card">
+          <div class="login-header">
+            <div class="brand-icon lg"><i class="fa-solid fa-gear"></i></div>
+            <h2>Control de Partes</h2>
+            <p class="muted">Luciano S.A.</p>
+          </div>
+          <div class="field">
+            <label>Usuario</label>
+            <select id="usuario" class="input"></select>
+          </div>
+          <div class="field">
+            <label>Legajo</label>
+            <input id="legajo" class="input" placeholder="Ingresá tu legajo" />
+          </div>
+          <button id="btnLogin" class="btn primary">Ingresar</button>
+          <p id="errorLogin" class="msg err"></p>
+          <p id="msgNoUsers" class="msg muted hidden">No hay usuarios cargados.</p>
+        </div>
+      </section>
+
+      <!-- OPERARIO: FORMULARIO -->
+      <section id="form-section" class="hidden">
+        <div class="grid cols-2 gap-24">
+          <div class="card">
+            <div class="card-header">
+              <h3>Parte Diario</h3>
+              <button id="btnSalir" class="btn text danger"><i class="fa-solid fa-right-from-bracket"></i> Salir</button>
+            </div>
+
+            <div class="grid cols-2 gap-12">
+              <div class="field">
+                <label>Fecha</label>
+                <input id="fecha" type="date" class="input" />
+              </div>
+              <div class="field">
+                <label>Interno</label>
+                <select id="interno" class="input"></select>
+              </div>
+              <div class="field col-2">
+                <label>Horas / Km finales</label>
+                <input id="final" class="input" placeholder="Ej: 245 (hs) o 85630 (km)" />
+              </div>
+              <div class="field col-2">
+                <label>¿Cargó combustible?</label>
+                <select id="cargoCombustible" class="input">
+                  <option value="no" selected>No</option>
+                  <option value="si">Sí</option>
+                </select>
+              </div>
+
+              <div id="datosCombustible" class="field col-1 hidden">
+                <label>Litros</label>
+                <input id="litros" type="number" class="input" placeholder="Ej: 120" />
+              </div>
+              <div id="datosCombustible2" class="field col-1 hidden">
+                <label>Km desde la última carga</label>
+                <input id="kmCarga" type="number" class="input" placeholder="Ej: 340" />
+              </div>
+
+              <div class="field col-2">
+                <label>Novedades</label>
+                <textarea id="novedades" class="input" rows="5" placeholder="Observaciones, novedades o comentarios"></textarea>
+              </div>
+            </div>
+
+            <div class="card-actions">
+              <button id="btnGuardar" class="btn success">
+                <i class="fa-solid fa-floppy-disk"></i> Guardar parte
+              </button>
+              <span id="msgGuardado" class="msg"></span>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h3>Último parte del interno</h3>
+              <span id="estadoServiceChip" class="badge">—</span>
+            </div>
+            <div class="kv">
+              <div><span>Fecha</span><strong id="uFecha">—</strong></div>
+              <div><span>Final</span><strong id="uFinal">—</strong></div>
+              <div><span>Combustible</span><strong id="uCombustible">—</strong></div>
+              <div><span>Novedades</span><strong id="uNovedades">—</strong></div>
+            </div>
+            <p class="muted small">Se calcula automáticamente por horas/km desde el último service.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ADMIN -->
+      <section id="admin-section" class="hidden">
+        <div class="admin-layout">
+          <!-- Tabs -->
+          
+
+          <!-- Dash -->
+          <div id="tab-dashboard" class="subtab">
+            <div class="grid cols-3 gap-12">
+              <div class="metric card"><span class="muted">Internos activos</span><strong id="mActivos"> — </strong></div>
+              <div class="metric card"><span class="muted">Próximos a service</span><strong id="mProx"> — </strong></div>
+              <div class="metric card"><span class="muted">Último parte</span><strong id="mUltimo"> — </strong></div>
+            </div>
+          </div>
+
+          <!-- Usuarios -->
+          <div id="tab-usuarios" class="subtab hidden">
+            <div class="card-header">
+              <h3>Usuarios</h3>
+              <div class="grid cols-3 gap-12">
+                <input id="nu-nombre" class="input" placeholder="Nombre y apellido" />
+                <input id="nu-legajo" class="input" placeholder="Legajo" />
+                <select id="nu-rol" class="input"><option value="operario">Operario</option><option value="admin">Admin</option></select>
+              </div>
+              <button id="btnAddUsuario" class="btn primary">Agregar usuario</button>
+            </div>
+            <div class="table-wrap">
+              <table class="table">
+                <thead><tr><th>Nombre</th><th>Legajo</th><th>Rol</th><th></th></tr></thead>
+                <tbody id="tablaUsuarios"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Internos -->
+          <div id="tab-internos" class="subtab hidden">
+            <div class="card-header">
+              <h3>Internos</h3>
+              <div class="grid cols-6 gap-12">
+                <input id="ni-codigo" class="input" placeholder="Código" />
+                <select id="ni-tipo" class="input"><option value="horas">Horas</option><option value="km">Km</option></select>
+                <input id="ni-cada" class="input" placeholder="Cada (250 / 10000)" />
+                <input id="ni-ultvalor" class="input" placeholder="Últ. service valor" />
+                <input id="ni-ultfecha" class="input" type="date" />
+              </div>
+              <button id="btnAddInterno" class="btn primary">Agregar interno</button>
+            </div>
+            <div class="table-wrap">
+              <table class="table">
+                <thead><tr><th>Interno</th><th>Tipo</th><th>Prox. cada</th><th>Último service</th><th>Filtros</th><th>RM</th><th></th></tr></thead>
+                <tbody id="tablaInternos"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Partes -->
+          <div id="tab-partes" class="subtab hidden">
+            <div class="table-wrap">
+              <table class="table">
+                <thead>
+                  <tr><th>Fecha</th><th>Usuario</th><th>Interno</th><th>Final</th><th>Combustible</th><th>Novedades</th><th>Estado</th><th></th></tr>
+                </thead>
+                <tbody id="tablaPartes"></tbody>
+              </table>
+            </div>
+
+            <h4 class="mt-16">Últimos 5</h4>
+            <div class="table-wrap">
+              <table class="table">
+                <thead><tr><th>Fecha</th><th>Usuario</th><th>Interno</th><th>Final</th><th>Service</th></tr></thead>
+                <tbody id="tablaUltimos"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Service -->
+          <div id="tab-service" class="subtab hidden">
+            <div class="card-header">
+              <h3>Registrar Service</h3>
+              <div class="grid cols-4 gap-12">
+                <select id="sv-interno" class="input"></select>
+                <input id="sv-fecha" type="date" class="input" />
+                <input id="sv-valor" class="input" placeholder="Valor (km/hs)" />
+                <input id="sv-rm" class="input" placeholder="RM (opcional)" />
+              </div>
+              <div class="grid cols-3 gap-12">
+                <input id="sv-aceite-tipo" class="input" placeholder="Aceite tipo (opcional)" />
+                <input id="sv-aceite-litros" class="input" placeholder="Litros" />
+              </div>
+              <div class="filters-grid">
+                <div>
+                  <div class="filters-header"><strong>Aceite</strong><button id="sv-add-aceite" class="btn tiny">+ Filtro</button></div>
+                  <div id="sv-list-aceite" class="filters-list"></div>
+                </div>
+                <div>
+                  <div class="filters-header"><strong>Aire Primario</strong><button id="sv-add-airep" class="btn tiny">+ Filtro</button></div>
+                  <div id="sv-list-airep" class="filters-list"></div>
+                </div>
+                <div>
+                  <div class="filters-header"><strong>Aire Secundario</strong><button id="sv-add-aires" class="btn tiny">+ Filtro</button></div>
+                  <div id="sv-list-aires" class="filters-list"></div>
+                </div>
+                <div>
+                  <div class="filters-header"><strong>Combustible</strong><button id="sv-add-comb" class="btn tiny">+ Filtro</button></div>
+                  <div id="sv-list-comb" class="filters-list"></div>
+                </div>
+                <div>
+                  <div class="filters-header"><strong>Habitáculo</strong><button id="sv-add-hab" class="btn tiny">+ Filtro</button></div>
+                  <div id="sv-list-hab" class="filters-list"></div>
+                </div>
+                <div>
+                  <div class="filters-header"><strong>Hidráulico</strong><button id="sv-add-hid" class="btn tiny">+ Filtro</button></div>
+                  <div id="sv-list-hid" class="filters-list"></div>
+                </div>
+              </div>
+              <button id="btnAddService" class="btn success mt-12"><i class="fa-solid fa-screwdriver-wrench"></i> Guardar Service</button>
+            </div>
+
+            <div class="table-wrap mt-16">
+              <table class="table">
+                <thead><tr><th>Fecha</th><th>Interno</th><th>Valor</th><th>Tipo</th><th>Filtros</th><th>Aceite</th><th>RM/Notas</th></tr></thead>
+                <tbody id="tablaService"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Sin partes -->
+          <div id="tab-sinpartes" class="subtab hidden">
+            <div class="card">
+              <h3>Internos sin partes recientes</h3>
+              <ul id="listaSinPartes" class="chips"></ul>
+              <h4 class="mt-16">Otros</h4>
+              <ul id="listaSinPartes2" class="chips"></ul>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="script.js"></script>
+  <script>
+    // Mostrar/ocultar sidebar en móviles (no toca tu lógica)
+    const sidebar = document.getElementById('sidebar');
+    const toggle = document.getElementById('sidebarToggle');
+    if (toggle) toggle.addEventListener('click', ()=> sidebar.classList.toggle('hidden'));
+  </script>
+</body>
+</html>
