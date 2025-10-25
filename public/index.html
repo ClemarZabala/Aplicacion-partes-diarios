@@ -41,7 +41,7 @@
 
     <!-- MAIN -->
     <main class="main">
-      <!-- TOPBAR (visible en admin) -->
+      <!-- TOPBAR -->
       <header class="topbar hidden" id="topbar">
         <div class="topbar-left">
           <button id="sidebarToggle" class="btn icon" title="Menú">
@@ -80,7 +80,7 @@
         </div>
       </section>
 
-      <!-- OPERARIO: FORMULARIO -->
+      <!-- FORMULARIO OPERARIO -->
       <section id="form-section" class="hidden">
         <div class="grid cols-2 gap-24">
           <div class="card">
@@ -152,26 +152,41 @@
       <!-- ADMIN -->
       <section id="admin-section" class="hidden">
         <div class="admin-layout">
-          <!-- Tabs -->
           
+<!-- DASHBOARD -->
+<div id="tab-dashboard" class="subtab">
+  <section class="metrics">
+    <div class="metric-card">
+      <p>Internos activos</p>
+      <b id="mActivos">0</b>
+    </div>
+    <div class="metric-card">
+      <p>Próximos a service</p>
+      <b id="mProx">0</b>
+    </div>
+    <div class="metric-card danger">
+      <p>Equipos con service vencido</p>
+      <b id="mVencidos">0</b>
+    </div>
+  </section>
 
-          <!-- Dash -->
-          <div id="tab-dashboard" class="subtab">
-            <div class="grid cols-3 gap-12">
-              <div class="metric card"><span class="muted">Internos activos</span><strong id="mActivos"> — </strong></div>
-              <div class="metric card"><span class="muted">Próximos a service</span><strong id="mProx"> — </strong></div>
-              <div class="metric card"><span class="muted">Último parte</span><strong id="mUltimo"> — </strong></div>
-            </div>
+  <h3 class="mt-16">Estado general de los internos</h3>
+  <div id="dashboardCards" class="dashboard-grid"></div>
+</div>
+
           </div>
 
-          <!-- Usuarios -->
+          <!-- USUARIOS -->
           <div id="tab-usuarios" class="subtab hidden">
             <div class="card-header">
               <h3>Usuarios</h3>
               <div class="grid cols-3 gap-12">
                 <input id="nu-nombre" class="input" placeholder="Nombre y apellido" />
                 <input id="nu-legajo" class="input" placeholder="Legajo" />
-                <select id="nu-rol" class="input"><option value="operario">Operario</option><option value="admin">Admin</option></select>
+                <select id="nu-rol" class="input">
+                  <option value="operario">Operario</option>
+                  <option value="admin">Admin</option>
+                </select>
               </div>
               <button id="btnAddUsuario" class="btn primary">Agregar usuario</button>
             </div>
@@ -183,7 +198,7 @@
             </div>
           </div>
 
-          <!-- Internos -->
+          <!-- INTERNOS -->
           <div id="tab-internos" class="subtab hidden">
             <div class="card-header">
               <h3>Internos</h3>
@@ -204,7 +219,7 @@
             </div>
           </div>
 
-          <!-- Partes -->
+          <!-- PARTES -->
           <div id="tab-partes" class="subtab hidden">
             <div class="table-wrap">
               <table class="table">
@@ -224,7 +239,7 @@
             </div>
           </div>
 
-          <!-- Service -->
+          <!-- SERVICE -->
           <div id="tab-service" class="subtab hidden">
             <div class="card-header">
               <h3>Registrar Service</h3>
@@ -275,7 +290,7 @@
             </div>
           </div>
 
-          <!-- Sin partes -->
+          <!-- SIN PARTES -->
           <div id="tab-sinpartes" class="subtab hidden">
             <div class="card">
               <h3>Internos sin partes recientes</h3>
@@ -291,7 +306,6 @@
 
   <script type="module" src="script.js"></script>
   <script>
-    // Mostrar/ocultar sidebar en móviles (no toca tu lógica)
     const sidebar = document.getElementById('sidebar');
     const toggle = document.getElementById('sidebarToggle');
     if (toggle) toggle.addEventListener('click', ()=> sidebar.classList.toggle('hidden'));

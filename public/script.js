@@ -2,7 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
   getFirestore, collection, addDoc, setDoc, doc, getDoc, getDocs,
-  deleteDoc, query, orderBy, limit, where, serverTimestamp
+  deleteDoc, query, orderBy, limit, where, serverTimestamp, onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -18,49 +18,51 @@ const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
 
 /****************  UI REFS  ****************/
-const appLoader = document.getElementById("appLoader");
+const appLoader     = document.getElementById("appLoader");
 
-const loginSection = document.getElementById("login-section");
-const formSection  = document.getElementById("form-section");
-const adminSection = document.getElementById("admin-section");
+const loginSection  = document.getElementById("login-section");
+const formSection   = document.getElementById("form-section");
+const adminSection  = document.getElementById("admin-section");
 
-const usuarioSel  = document.getElementById("usuario");
-const legajoInput = document.getElementById("legajo");
-const btnLogin    = document.getElementById("btnLogin");
-const errorLogin  = document.getElementById("errorLogin");
-const msgNoUsers  = document.getElementById("msgNoUsers");
+const usuarioSel    = document.getElementById("usuario");
+const legajoInput   = document.getElementById("legajo");
+const btnLogin      = document.getElementById("btnLogin");
+const errorLogin    = document.getElementById("errorLogin");
+const msgNoUsers    = document.getElementById("msgNoUsers");
 
 const btnSalir      = document.getElementById("btnSalir");
 const btnSalirAdmin = document.getElementById("btnSalirAdmin");
 
-const userActive  = document.getElementById("userActive");
-const fechaInput  = document.getElementById("fecha");
-const internoSel  = document.getElementById("interno");
-const finalInput  = document.getElementById("final");
-const cargoSel    = document.getElementById("cargoCombustible");
-const datosComb   = document.getElementById("datosCombustible");
-const datosComb2  = document.getElementById("datosCombustible2");
-const litrosInput = document.getElementById("litros");
-const kmCarga     = document.getElementById("kmCarga");
-const novedades   = document.getElementById("novedades");
-const btnGuardar  = document.getElementById("btnGuardar");
-const msgGuardado = document.getElementById("msgGuardado");
-const chipEstado  = document.getElementById("estadoServiceChip");
+const userActive    = document.getElementById("userActive");
+const fechaInput    = document.getElementById("fecha");
+const internoSel    = document.getElementById("interno");
+const finalInput    = document.getElementById("final");
+const cargoSel      = document.getElementById("cargoCombustible");
+const datosComb     = document.getElementById("datosCombustible");
+const datosComb2    = document.getElementById("datosCombustible2");
+const litrosInput   = document.getElementById("litros");
+const kmCarga       = document.getElementById("kmCarga");
+const novedades     = document.getElementById("novedades");
+const btnGuardar    = document.getElementById("btnGuardar");
+const msgGuardado   = document.getElementById("msgGuardado");
+const chipEstado    = document.getElementById("estadoServiceChip");
 
 const ultimoParteBox = document.getElementById("ultimoParte");
-const uFecha = document.getElementById("uFecha");
-const uFinal = document.getElementById("uFinal");
-const uComb  = document.getElementById("uCombustible");
-const uNove  = document.getElementById("uNovedades");
+const uFecha  = document.getElementById("uFecha");
+const uFinal  = document.getElementById("uFinal");
+const uComb   = document.getElementById("uCombustible");
+const uNove   = document.getElementById("uNovedades");
 
-const tabBtns       = document.querySelectorAll(".tab-btn");
-const tablaUltimos  = document.getElementById("tablaUltimos");
-const tablaUsuarios = document.getElementById("tablaUsuarios");
-const tablaInternos = document.getElementById("tablaInternos");
-const tablaPartes   = document.getElementById("tablaPartes");
-const tablaService  = document.getElementById("tablaService");
-const listaSinPartes= document.getElementById("listaSinPartes");
+const tabBtns        = document.querySelectorAll(".tab-btn");
+const tablaUltimos   = document.getElementById("tablaUltimos");
+const tablaUsuarios  = document.getElementById("tablaUsuarios");
+const tablaInternos  = document.getElementById("tablaInternos");
+const tablaPartes    = document.getElementById("tablaPartes");
+const tablaService   = document.getElementById("tablaService");
+const listaSinPartes = document.getElementById("listaSinPartes");
 const listaSinPartes2= document.getElementById("listaSinPartes2");
+const sidebar        = document.getElementById("sidebar");
+const topbar         = document.getElementById("topbar");
 
 /* Usuarios */
 const nuNombre      = document.getElementById("nu-nombre");
@@ -116,25 +118,20 @@ const chip = (el, type, text)=>{ if(!el) return; el.className = "badge " + (type
 const toast = (el, type, text)=>{ if(!el) return; el.className="msg " + (type||""); el.textContent=text; setTimeout(()=>{el.className="msg"; el.textContent=""}, 3500); };
 
 /****************  SEEDS OPCIONALES  ****************/
-const ENABLE_SEEDS = true;
+const ENABLE_SEEDS = false; // dejalo en false en producción
 async function ensureSeeds(){
   if(!ENABLE_SEEDS) return;
 
   const cu = await getDocs(collection(db,"usuarios"));
   if (cu.empty){
     await addDoc(collection(db,"usuarios"), {nombre:"admin",              legajo:"000", rol:"admin"});
-    await addDoc(collection(db,"usuarios"), {nombre:"Rodriguez Rodrigo",  legajo:"127", rol:"operario"});
-    await addDoc(collection(db,"usuarios"), {nombre:"Rodriguez Gabriel",  legajo:"125", rol:"operario"});
-    await addDoc(collection(db,"usuarios"), {nombre:"Acevedo Nelson",     legajo:"123", rol:"operario"});
-    await addDoc(collection(db,"usuarios"), {nombre:"Arias Federico",     legajo:"124", rol:"operario"});
+    await addDoc(collection(db,"usuarios"), {nombre:"Operario Demo",      legajo:"123", rol:"operario"});
   }
   const ci = await getDocs(collection(db,"internos"));
   if (ci.empty){
     const base = today();
     await setDoc(doc(db,"internos","TR-512"),{tipo:"horas", proximoCada:250,   ultimoServiceValor:300,    ultimoServiceFecha:base, filtros:{aceite:"F-AC-001", aire:"F-AI-100", combustible:"F-CO-200"}, rm:"RM-TR512"});
     await setDoc(doc(db,"internos","C-185"), {tipo:"km",    proximoCada:10000, ultimoServiceValor:84000,  ultimoServiceFecha:base, filtros:{aceite:"F-AC-011", aire:"F-AI-101", combustible:"F-CO-210"}, rm:"RM-C185"});
-    await setDoc(doc(db,"internos","T-434"), {tipo:"km",    proximoCada:10000, ultimoServiceValor:100000, ultimoServiceFecha:base, filtros:{aceite:"F-AC-019", aire:"F-AI-115", combustible:"F-CO-240"}, rm:"RM-T434"});
-    await setDoc(doc(db,"internos","C-111"), {tipo:"horas", proximoCada:250,   ultimoServiceValor:1200,   ultimoServiceFecha:base, filtros:{aceite:"F-AC-050", aire:"F-AI-120", combustible:"F-CO-260"}, rm:"RM-C111"});
   }
 }
 
@@ -173,8 +170,6 @@ async function cargarInternosCombo(){
 }
 
 /****************  LOGIN  ****************/
-const sidebar = document.getElementById("sidebar");
-
 btnLogin.addEventListener("click", async () => {
   errorLogin.textContent = "";
   if(!usuarioSel.value || !legajoInput.value){
@@ -191,19 +186,18 @@ btnLogin.addEventListener("click", async () => {
   usuarioActivo = u;
   localStorage.setItem("usuarioActivo", JSON.stringify(u));
 
-  // 🔹 Mostrar/Ocultar secciones según rol
   if (u.rol === "admin") {
     document.body.classList.add("admin-active");
-
     sidebar.classList.remove("hidden");
+    topbar.classList.remove("hidden");
     adminSection.classList.remove("hidden");
     formSection.classList.add("hidden");
     loginSection.classList.add("hidden");
     await initAdmin();
   } else {
     document.body.classList.remove("admin-active");
-
     sidebar.classList.add("hidden");
+    topbar.classList.add("hidden");
     formSection.classList.remove("hidden");
     loginSection.classList.add("hidden");
     userActive.textContent = `Usuario: ${u.nombre}`;
@@ -304,13 +298,14 @@ tabBtns?.forEach(b=>{
     const target = document.getElementById(`tab-${b.dataset.tab}`);
     target?.classList.remove("hidden");
     if (b.dataset.tab === "service") initServiceLists();
+    if (b.dataset.tab === "dashboard") renderDashboardMetrics(); // mantiene compatibilidad
   });
 });
 
 /****************  ADMIN INIT  ****************/
-async function initAdmin(){
+async function initAdmin() {
   showLoader();
-  try{
+  try {
     await cargarInternosCombo();
     await renderUsuarios();
     await renderInternos();
@@ -318,7 +313,9 @@ async function initAdmin(){
     await renderPartes();
     await renderServiceTabla();
     await renderSinPartes();
-    await renderDashboardMetrics();
+
+    // pinta el dashboard apenas inicia
+    await liveDashboardMetrics();
   } finally {
     hideLoader();
   }
@@ -376,7 +373,7 @@ btnAddInterno?.addEventListener("click", async ()=>{
     await setDoc(doc(db,"internos", cod), data);
     niCodigo.value=""; niCada.value=""; niUltVal.value=""; niUltFec.value="";
     niFAceite.value=""; niFAire.value=""; niFComb.value=""; niRM.value="";
-    await renderInternos(); await cargarInternosCombo();
+    await renderInternos(); await cargarInternosCombo(); await renderDashboardMetrics();
   } finally { hideLoader(); }
 });
 
@@ -403,7 +400,7 @@ async function renderInternos(){
     b.addEventListener("click", async ()=>{
       if(!confirm("¿Eliminar interno? (No borra partes)")) return;
       await deleteDoc(doc(db,"internos", b.dataset.del));
-      await renderInternos(); await cargarInternosCombo();
+      await renderInternos(); await cargarInternosCombo(); await renderDashboardMetrics();
     });
   });
 }
@@ -424,7 +421,6 @@ async function renderUltimos(){
     tr.innerHTML = `<td>${p.fecha}</td><td>${p.usuario}</td><td>${p.interno}</td><td>${p.final}</td><td>${badgeEstado(dif,cada,tipo)}</td>`;
     tablaUltimos.appendChild(tr);
   }
-  if (document.getElementById("mUltimo") && s.size>0) document.getElementById("mUltimo").textContent = s.docs[0].data().fecha;
 }
 
 async function renderPartes(){
@@ -450,7 +446,7 @@ async function renderPartes(){
     b.addEventListener("click", async ()=>{
       if(!confirm("¿Eliminar parte?")) return;
       await deleteDoc(doc(db,"partes", b.dataset.del));
-      await renderPartes(); await renderUltimos(); await renderSinPartes();
+      await renderPartes(); await renderUltimos(); await renderSinPartes(); await renderDashboardMetrics();
     });
   });
 }
@@ -509,7 +505,7 @@ btnAddService?.addEventListener("click", async ()=>{
     svValor.value=""; svAceiteTipo.value=""; svAceiteLitros.value=""; svRM.value="";
     Object.values(SVC).forEach(g=> clearList(g.list));
 
-    await renderServiceTabla(); await renderInternos(); await renderPartes(); await renderUltimos();
+    await renderServiceTabla(); await renderInternos(); await renderPartes(); await renderUltimos(); await renderDashboardMetrics();
   } finally { hideLoader(); }
 });
 
@@ -526,19 +522,42 @@ function resumenFiltros(f){
   ].filter(Boolean);
   return items.length ? items.join(" · ") : "-";
 }
-async function renderServiceTabla(){
-  if(!tablaService) return;
-  tablaService.innerHTML="";
-  const qs = query(collection(db,"services"), orderBy("timestamp","desc"), limit(80));
+async function renderServiceTabla() {
+  if (!tablaService) return;
+  tablaService.innerHTML = "";
+  const qs = query(collection(db, "services"), orderBy("timestamp", "desc"), limit(80));
   const s = await getDocs(qs);
-  s.forEach(d=>{
+
+  s.forEach(d => {
     const x = d.data();
+    const id = d.id;
+
     const aceiteTxt = (x.aceite && (x.aceite.tipo || x.aceite.litros))
-      ? `${x.aceite.tipo||""}${x.aceite.tipo && x.aceite.litros ? " – " : ""}${x.aceite.litros? (x.aceite.litros+" L"):""}`
+      ? `${x.aceite.tipo || ""}${x.aceite.tipo && x.aceite.litros ? " – " : ""}${x.aceite.litros ? (x.aceite.litros + " L") : ""}`
       : "-";
+
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${x.fecha}</td><td>${x.interno}</td><td>${x.valorService}</td><td>${x.tipo}</td><td>${resumenFiltros(x.filtros)}</td><td>${aceiteTxt}</td><td>${x.rm||x.notas||"-"}</td>`;
+    tr.innerHTML = `
+      <td>${x.fecha}</td>
+      <td>${x.interno}</td>
+      <td>${x.valorService}</td>
+      <td>${x.tipo}</td>
+      <td>${resumenFiltros(x.filtros)}</td>
+      <td>${aceiteTxt}</td>
+      <td>${x.rm || x.notas || "-"}</td>
+      <td><button class="btn tiny danger" data-del="${id}"><i class="fa-solid fa-trash"></i></button></td>
+    `;
     tablaService.appendChild(tr);
+  });
+
+  tablaService.querySelectorAll("[data-del]").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      if (!confirm("¿Eliminar este service?")) return;
+      const id = btn.dataset.del;
+      await deleteDoc(doc(db, "services", id));
+      await renderServiceTabla();
+      await renderInternos(); await renderDashboardMetrics();
+    });
   });
 }
 
@@ -551,13 +570,18 @@ async function renderSinPartes(){
 
   for(const i of ints.docs){
     const interno = i.id;
-    const qs = query(collection(db,"partes"), where("interno","==", interno), orderBy("timestamp","desc"), limit(1));
+    const qs = query(collection(db,"partes"), where("interno","==", interno));
     const s = await getDocs(qs);
     if (s.empty){
       targets.forEach(ul=> ul.insertAdjacentHTML("beforeend", `<li class="chip">${interno} — <span class="muted">sin partes recientes</span></li>`));
       continue;
     }
-    const ts = s.docs[0].data().timestamp?.toMillis?.() || Date.parse(s.docs[0].data().fecha);
+    // elegir el último en memoria (evita índice compuesto)
+    const last = s.docs
+      .map(d=> d.data())
+      .sort((a,b)=> (b.timestamp?.toMillis?.() || Date.parse(b.fecha||0)) - (a.timestamp?.toMillis?.() || Date.parse(a.fecha||0)))[0];
+
+    const ts = last?.timestamp?.toMillis?.() || Date.parse(last?.fecha||"");
     if (!ts || (now - ts) >= cinco){
       const days = Math.floor((now - ts)/(24*60*60*1000));
       targets.forEach(ul=> ul.insertAdjacentHTML("beforeend", `<li class="chip">${interno} — <span class="muted">sin partes hace ${days} días</span></li>`));
@@ -565,33 +589,152 @@ async function renderSinPartes(){
   }
 }
 
-/***************  ADMIN: Métricas  ****************/
-async function renderDashboardMetrics(){
-  const mProx = document.getElementById("mProx");
-  const mMant = document.getElementById("mMant");
-  const ints = await getDocs(collection(db,"internos"));
-  let proximos = 0;
-  for(const i of ints.docs){
-    const I = i.data();
-    const qs = query(collection(db,"partes"), where("interno","==", i.id), orderBy("timestamp","desc"), limit(1));
-    const s = await getDocs(qs);
-    if (s.empty) continue;
-    const p = s.docs[0].data();
-    const dif  = Number(p.final) - Number(I?.ultimoServiceValor || 0);
-    const cada = Number(I?.proximoCada || (I?.tipo==="horas"?250:10000));
-    if (dif >= Math.floor(cada*0.9)) proximos++;
+/***************  ADMIN: Dashboard en vivo ****************/
+/***************  ADMIN: Dashboard en vivo ****************/
+// Versión final con todos los datos de service y estado
+async function liveDashboardMetrics() {
+  const mActivos  = document.getElementById("mActivos");
+  const mProx     = document.getElementById("mProx");
+  const mVencidos = document.getElementById("mVencidos");
+  const grid      = document.getElementById("dashboardCards");
+  if (!grid) return;
+
+  grid.innerHTML = `<div class="dash-card none">Cargando estado...</div>`;
+
+  try {
+    const internosSnap = await getDocs(collection(db, "internos"));
+    if (internosSnap.empty) {
+      grid.innerHTML = `<div class="dash-card none">No hay internos cargados</div>`;
+      if (mActivos) mActivos.textContent = "0";
+      if (mProx) mProx.textContent = "0";
+      if (mVencidos) mVencidos.textContent = "0";
+      return;
+    }
+
+    grid.innerHTML = "";
+    let proximos = 0, vencidos = 0;
+
+    const tasks = internosSnap.docs.map(async (docSnap)=>{
+      const I = docSnap.data();
+      const interno = docSnap.id;
+
+      // Último parte registrado
+      let pUlt = null;
+      try {
+        const partsSnap = await getDocs(query(collection(db, "partes"), where("interno","==", interno)));
+        if (!partsSnap.empty) {
+          pUlt = partsSnap.docs
+            .map(d=> d.data())
+            .sort((a,b)=> (b.timestamp?.toMillis?.() || Date.parse(b.fecha||0)) - (a.timestamp?.toMillis?.() || Date.parse(a.fecha||0)))[0];
+        }
+      } catch {}
+
+      // Variables base
+      let estado = "none";
+      let texto  = "Sin parte";
+      let info1  = "";
+      let info2  = "";
+      let info3  = "";
+
+      // Si no hay registro de service, avisamos directamente
+      if (!I?.ultimoServiceValor || !I?.ultimoServiceFecha) {
+        estado = "none";
+        texto = "Sin service registrado";
+        const card = document.createElement("div");
+        card.className = `dash-card ${estado}`;
+        card.innerHTML = `
+          <h4>${interno}</h4>
+          <div>${texto}</div>
+          <div class="muted small">—</div>
+        `;
+        grid.appendChild(card);
+        return;
+      }
+
+      // Si tiene datos de service
+      const tipo = I.tipo || "horas";
+      const cada = Number(I.proximoCada || (tipo === "km" ? 10000 : 250));
+      const ultValor = Number(I.ultimoServiceValor || 0);
+      const proxValor = ultValor + cada;
+      const unidad = tipo === "km" ? "km" : "hs";
+
+      if (pUlt) {
+        const actual = Number(pUlt.final);
+        const dif = actual - ultValor;
+        const rest = Math.max(0, proxValor - actual);
+
+        info1 = `${tipo === "km" ? "Km actuales" : "Horas actuales"}: ${actual}`;
+        info2 = `Próximo service: ${proxValor} ${unidad}`;
+        info3 = `Último service: ${I.ultimoServiceFecha}`;
+
+        if (dif >= cada) {
+          estado = "danger";
+          texto = `VENCIDO hace ${dif - cada} ${unidad}`;
+          vencidos++;
+        } else if (dif >= Math.floor(cada * 0.9)) {
+          estado = "warn";
+          texto = `PRÓXIMO — faltan ${rest} ${unidad}`;
+          proximos++;
+        } else {
+          estado = "ok";
+          texto = `OK — faltan ${rest} ${unidad}`;
+        }
+      } else {
+        texto = "Sin parte cargado aún";
+        info1 = `Próximo service: ${proxValor} ${unidad}`;
+        info3 = `Último service: ${I.ultimoServiceFecha}`;
+      }
+
+      const card = document.createElement("div");
+      card.className = `dash-card ${estado}`;
+      card.innerHTML = `
+        <h4>${interno}</h4>
+        <div>${texto}</div>
+        <div class="muted small">${info1}</div>
+        <div class="muted small">${info2}</div>
+        <div class="muted small">${info3}</div>
+      `;
+      grid.appendChild(card);
+    });
+
+    await Promise.all(tasks);
+
+    if (mActivos)  mActivos.textContent  = internosSnap.size;
+    if (mProx)     mProx.textContent     = proximos;
+    if (mVencidos) mVencidos.textContent = vencidos;
+
+    grid.style.display = "grid";
+  } catch (e) {
+    console.error("Dashboard error:", e);
+    grid.innerHTML = `<div class="dash-card danger">Error al cargar el dashboard</div>`;
   }
-  mProx && (mProx.textContent = proximos);
-  mMant && (mMant.textContent = "—");
 }
 
-/****************  BOOT  ****************/
+
+
+// Wrapper para compatibilidad con llamadas existentes
+function renderDashboardMetrics(){ liveDashboardMetrics(); }
+
+/****************  BOOT + SALIR  ****************/
+function cerrarSesion() {
+  localStorage.removeItem("usuarioActivo");
+  usuarioActivo = null;
+  formSection.classList.add("hidden");
+  adminSection.classList.add("hidden");
+  sidebar.classList.add("hidden");
+  topbar.classList.add("hidden");
+  loginSection.classList.remove("hidden");
+  legajoInput.value = "";
+  usuarioSel.value = "";
+}
+btnSalir?.addEventListener("click", cerrarSesion);
+btnSalirAdmin?.addEventListener("click", cerrarSesion);
+
 (async function boot(){
   showLoader();
   try{
     await ensureSeeds();
     await cargarUsuariosCombo();
-    fechaInput && (fechaInput.value = today());
 
     const saved = localStorage.getItem("usuarioActivo");
     if (saved){
@@ -602,35 +745,17 @@ async function renderDashboardMetrics(){
     }
   } finally {
     hideLoader();
-  /****************  BOTONES DE SALIR  ****************/
-function cerrarSesion() {
-  localStorage.removeItem("usuarioActivo");
-  usuarioActivo = null;
-  // Ocultar todo y volver al login
-  formSection.classList.add("hidden");
-  adminSection.classList.add("hidden");
-  sidebar.classList.add("hidden");
-  topbar.classList.add("hidden");
-  loginSection.classList.remove("hidden");
-  // Limpiar campos
-  legajoInput.value = "";
-  usuarioSel.value = "";
-}
-
-btnSalir?.addEventListener("click", cerrarSesion);
-btnSalirAdmin?.addEventListener("click", cerrarSesion);
-
   }
 })();
 
-// ⏳ Ocultar loader automáticamente si tarda más de 2 segundos
+// Ocultar loader con retardo suave
 window.addEventListener("load", () => {
-  const loader = document.getElementById("loader");
+  const loader = document.getElementById("appLoader");
   if (loader) {
     setTimeout(() => {
       loader.style.opacity = "0";
       loader.style.pointerEvents = "none";
-      setTimeout(() => loader.style.display = "none", 300);
-    }, 1200); // 1.2 segundos
+      setTimeout(() => loader.classList.add("hidden"), 300);
+    }, 800);
   }
 });
