@@ -1,4 +1,4 @@
-!doctype html>
+<!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
@@ -30,17 +30,17 @@
       </div>
 
       <nav class="menu">
-        <button class="menu-item tab-btn active" data-tab="dashboard"><i class="fa-solid fa-chart-line"></i> Resumen</button>
+        <!-- 🔹 SIN 'active' POR DEFECTO -->
+        <button class="menu-item tab-btn" data-tab="dashboard"><i class="fa-solid fa-chart-line"></i> Resumen</button>
         <button class="menu-item tab-btn" data-tab="usuarios"><i class="fa-solid fa-user-group"></i> Usuarios</button>
         <button class="menu-item tab-btn" data-tab="internos"><i class="fa-solid fa-truck-front"></i> Internos</button>
         <button class="menu-item tab-btn" data-tab="partes"><i class="fa-solid fa-clipboard-list"></i> Partes</button>
         <button class="menu-item tab-btn" data-tab="service"><i class="fa-solid fa-screwdriver-wrench"></i> Service</button>
         <button class="menu-item tab-btn" data-tab="sinpartes"><i class="fa-regular fa-clock"></i> Sin partes (≥5 días)</button>
-      <!-- ===== NUEVO BOTÓN: COMBUSTIBLE (v1.2) ===== -->
-<button class="menu-item tab-btn" data-tab="combustible">
-  <i class="fa-solid fa-gas-pump"></i> Combustible
-</button>
-
+        <!-- ===== MÓDULO COMBUSTIBLE ===== -->
+        <button class="menu-item tab-btn" data-tab="combustible">
+          <i class="fa-solid fa-gas-pump"></i> Combustible
+        </button>
       </nav>
     </aside>
 
@@ -157,146 +157,150 @@
       <!-- ADMIN -->
       <section id="admin-section" class="hidden">
         <div class="admin-layout">
-          <!-- ====================== MÓDULO COMBUSTIBLE (v1.2) ====================== -->
-<div id="tab-combustible" class="subtab hidden">
-  <div class="subtabs-menu">
-    <button class="subtab-btn active" data-subtab="carga">Carga de combustible</button>
-    <button class="subtab-btn" data-subtab="interno">Por interno</button>
-    <button class="subtab-btn" data-subtab="chofer">Por chofer</button>
-    <div class="flex-spacer"></div>
-    <button id="btnCombustibleRefresh" class="btn tiny" title="Refrescar datos">↻ Refrescar</button>
-  </div>
 
-  <!-- Subtab: CARGA -->
-  <div id="subtab-carga" class="subtab-content">
-    <div class="card">
-      <div class="card-header">
-        <h3>Registrar carga de combustible</h3>
-      </div>
-
-      <div class="grid cols-3 gap-12">
-        <div class="field">
-          <label>Interno</label>
-          <select id="cc-interno" class="input"></select>
-        </div>
-        <div class="field">
-          <label>Fecha</label>
-          <input id="cc-fecha" type="date" class="input" />
-        </div>
-        <div class="field">
-          <label>Chofer</label>
-          <select id="cc-chofer" class="input"></select>
-
-        </div>
-        <div class="field">
-          <label>Km actuales</label>
-          <input id="cc-km" type="number" class="input" placeholder="Ej: 85420" />
-        </div>
-        <div class="field">
-          <label>Litros cargados</label>
-          <input id="cc-litros" type="number" class="input" placeholder="Ej: 200" />
-        </div>
-        <div class="field">
-          <label>Tipo de carga</label>
-          <select id="cc-tipo" class="input">
-            <option value="Completa">Completa</option>
-            <option value="Parcial">Parcial</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Origen</label>
-          <select id="cc-origen" class="input">
-            <option value="Tanque">Tanque</option>
-            <option value="Camión Service">Camión Service</option>
-          </select>
-        </div>
-        <div class="field col-2">
-          <label>Observaciones</label>
-          <input id="cc-obs" class="input" placeholder="Notas u observaciones" />
-        </div>
-      </div>
-
-      <div class="card-actions">
-        <button id="btnGuardarCarga" class="btn success">
-          💾 Guardar carga
-        </button>
-        <span id="cc-msg" class="msg"></span>
-      </div>
-    </div>
-
-    <!-- Tabla de cargas -->
-    <div class="table-wrap">
-      <table class="table" id="cc-tabla">
-        <thead>
-          <tr>
-            <th>Fecha</th>
-            <th>Interno</th>
-            <th>Chofer</th>
-            <th>Km</th>
-            <th>Litros</th>
-            <th>Tipo</th>
-            <th>Origen</th>
-            <th>Obs.</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- Subtab: POR INTERNO -->
-  <div id="subtab-interno" class="subtab-content hidden">
-    <div class="filters-header">
-      <h3>Consumo por Interno</h3>
-      <div class="filters-buttons">
-        <button class="btn tiny filter-btn active" data-range="mes">Mes actual</button>
-        <button class="btn tiny filter-btn" data-range="semana">Última semana</button>
-        <button class="btn tiny filter-btn" data-range="total">Total</button>
-      </div>
-    </div>
-    <div id="grid-interno" class="dashboard-grid"></div>
-  </div>
-
-  <!-- Subtab: POR CHOFER -->
-  <div id="subtab-chofer" class="subtab-content hidden">
-    <div class="filters-header">
-      <h3>Consumo por Chofer</h3>
-      <div class="filters-buttons">
-        <button class="btn tiny filter-btn active" data-range="mes">Mes actual</button>
-        <button class="btn tiny filter-btn" data-range="semana">Última semana</button>
-        <button class="btn tiny filter-btn" data-range="total">Total</button>
-      </div>
-    </div>
-    <div id="grid-chofer" class="dashboard-grid"></div>
-  </div>
-</div>
-<!-- ==================== FIN MÓDULO COMBUSTIBLE ==================== -->
-
-          
-<!-- DASHBOARD -->
-<div id="tab-dashboard" class="subtab">
-  <section class="metrics">
-    <div class="metric-card">
-      <p>Internos activos</p>
-      <b id="mActivos">0</b>
-    </div>
-    <div class="metric-card">
-      <p>Próximos a service</p>
-      <b id="mProx">0</b>
-    </div>
-    <div class="metric-card danger">
-      <p>Equipos con service vencido</p>
-      <b id="mVencidos">0</b>
-    </div>
-  </section>
-
-  <h3 class="mt-16">Estado general de los internos</h3>
-  <div id="dashboardCards" class="dashboard-grid"></div>
-</div>
-
+          <!-- ====================== PANTALLA NEUTRA (INICIAL) ====================== -->
+          <div id="tab-neutral" class="subtab">
+            <div style="padding: 80px 20px; text-align: center; color: #64748b;">
+              <h2>Bienvenido al Panel de Control</h2>
+              <p>Seleccioná una opción del menú lateral para comenzar.</p>
+            </div>
           </div>
 
-          <!-- USUARIOS -->
+          <!-- ====================== MÓDULO COMBUSTIBLE (v1.2.3) ====================== -->
+          <div id="tab-combustible" class="subtab hidden">
+            <div class="subtabs-menu">
+              <button class="subtab-btn active" data-subtab="carga">Carga de combustible</button>
+              <button class="subtab-btn" data-subtab="interno">Por interno</button>
+              <button class="subtab-btn" data-subtab="chofer">Por chofer</button>
+              <div class="flex-spacer"></div>
+              <button id="btnCombustibleRefresh" class="btn tiny" title="Refrescar datos">↻ Refrescar</button>
+            </div>
+
+            <!-- Subtab: CARGA -->
+            <div id="subtab-carga" class="subtab-content">
+              <div class="card">
+                <div class="card-header">
+                  <h3>Registrar carga de combustible</h3>
+                </div>
+
+                <div class="grid cols-3 gap-12">
+                  <div class="field">
+                    <label>Interno</label>
+                    <select id="cc-interno" class="input"></select>
+                  </div>
+                  <div class="field">
+                    <label>Fecha</label>
+                    <input id="cc-fecha" type="date" class="input" />
+                  </div>
+                  <div class="field">
+                    <label>Chofer</label>
+                    <select id="cc-chofer" class="input"></select>
+                  </div>
+                  <div class="field">
+                    <label>Km actuales</label>
+                    <input id="cc-km" type="number" class="input" placeholder="Ej: 85420" />
+                  </div>
+                  <div class="field">
+                    <label>Litros cargados</label>
+                    <input id="cc-litros" type="number" class="input" placeholder="Ej: 200" />
+                  </div>
+                  <div class="field">
+                    <label>Tipo de carga</label>
+                    <select id="cc-tipo" class="input">
+                      <option value="Completa">Completa</option>
+                      <option value="Parcial">Parcial</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label>Origen</label>
+                    <select id="cc-origen" class="input">
+                      <option value="Tanque">Tanque</option>
+                      <option value="Camión Service">Camión Service</option>
+                    </select>
+                  </div>
+                  <div class="field col-2">
+                    <label>Observaciones</label>
+                    <input id="cc-obs" class="input" placeholder="Notas u observaciones" />
+                  </div>
+                </div>
+
+                <div class="card-actions">
+                  <button id="btnGuardarCarga" class="btn success">💾 Guardar carga</button>
+                  <span id="cc-msg" class="msg"></span>
+                </div>
+              </div>
+
+              <!-- Tabla de cargas -->
+              <div class="table-wrap">
+                <table class="table" id="cc-tabla">
+                  <thead>
+                    <tr>
+                      <th>Fecha</th>
+                      <th>Interno</th>
+                      <th>Chofer</th>
+                      <th>Km</th>
+                      <th>Litros</th>
+                      <th>Tipo</th>
+                      <th>Origen</th>
+                      <th>Obs.</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Subtab: POR INTERNO -->
+            <div id="subtab-interno" class="subtab-content hidden">
+              <div class="filters-header">
+                <h3>Consumo por Interno</h3>
+                <div class="filters-buttons">
+                  <button class="btn tiny filter-btn active" data-range="mes">Mes actual</button>
+                  <button class="btn tiny filter-btn" data-range="semana">Última semana</button>
+                  <button class="btn tiny filter-btn" data-range="total">Total</button>
+                </div>
+              </div>
+              <div id="grid-interno" class="dashboard-grid"></div>
+            </div>
+
+            <!-- Subtab: POR CHOFER -->
+            <div id="subtab-chofer" class="subtab-content hidden">
+              <div class="filters-header">
+                <h3>Consumo por Chofer</h3>
+                <div class="filters-buttons">
+                  <button class="btn tiny filter-btn active" data-range="mes">Mes actual</button>
+                  <button class="btn tiny filter-btn" data-range="semana">Última semana</button>
+                  <button class="btn tiny filter-btn" data-range="total">Total</button>
+                </div>
+              </div>
+              <div id="grid-chofer" class="dashboard-grid"></div>
+            </div>
+          </div>
+          <!-- ==================== FIN MÓDULO COMBUSTIBLE ==================== -->
+
+          <!-- ====================== DASHBOARD ====================== -->
+          <!-- 🔹 INICIA OCULTO (arranca NEUTRO) -->
+          <div id="tab-dashboard" class="subtab hidden">
+            <section class="metrics">
+              <div class="metric-card">
+                <p>Internos activos</p>
+                <b id="mActivos">0</b>
+              </div>
+              <div class="metric-card">
+                <p>Próximos a service</p>
+                <b id="mProx">0</b>
+              </div>
+              <div class="metric-card danger">
+                <p>Equipos con service vencido</p>
+                <b id="mVencidos">0</b>
+              </div>
+            </section>
+
+            <h3 class="mt-16">Estado general de los internos</h3>
+            <div id="dashboardCards" class="dashboard-grid"></div>
+          </div>
+
+          <!-- ====================== USUARIOS ====================== -->
           <div id="tab-usuarios" class="subtab hidden">
             <div class="card-header">
               <h3>Usuarios</h3>
@@ -318,13 +322,16 @@
             </div>
           </div>
 
-          <!-- INTERNOS -->
+          <!-- ====================== INTERNOS ====================== -->
           <div id="tab-internos" class="subtab hidden">
             <div class="card-header">
               <h3>Internos</h3>
               <div class="grid cols-6 gap-12">
                 <input id="ni-codigo" class="input" placeholder="Código" />
-                <select id="ni-tipo" class="input"><option value="horas">Horas</option><option value="km">Km</option></select>
+                <select id="ni-tipo" class="input">
+                  <option value="horas">Horas</option>
+                  <option value="km">Km</option>
+                </select>
                 <input id="ni-cada" class="input" placeholder="Cada (250 / 10000)" />
                 <input id="ni-ultvalor" class="input" placeholder="Últ. service valor" />
                 <input id="ni-ultfecha" class="input" type="date" />
@@ -339,12 +346,21 @@
             </div>
           </div>
 
-          <!-- PARTES -->
+          <!-- ====================== PARTES ====================== -->
           <div id="tab-partes" class="subtab hidden">
             <div class="table-wrap">
               <table class="table">
                 <thead>
-                  <tr><th>Fecha</th><th>Usuario</th><th>Interno</th><th>Final</th><th>Combustible</th><th>Novedades</th><th>Estado</th><th></th></tr>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Usuario</th>
+                    <th>Interno</th>
+                    <th>Final</th>
+                    <th>Combustible</th>
+                    <th>Novedades</th>
+                    <th>Estado</th>
+                    <th></th>
+                  </tr>
                 </thead>
                 <tbody id="tablaPartes"></tbody>
               </table>
@@ -359,7 +375,7 @@
             </div>
           </div>
 
-          <!-- SERVICE -->
+          <!-- ====================== SERVICE ====================== -->
           <div id="tab-service" class="subtab hidden">
             <div class="card-header">
               <h3>Registrar Service</h3>
@@ -410,7 +426,7 @@
             </div>
           </div>
 
-          <!-- SIN PARTES -->
+          <!-- ====================== SIN PARTES ====================== -->
           <div id="tab-sinpartes" class="subtab hidden">
             <div class="card">
               <h3>Internos sin partes recientes</h3>
@@ -419,16 +435,69 @@
               <ul id="listaSinPartes2" class="chips"></ul>
             </div>
           </div>
+
         </div>
       </section>
     </main>
   </div>
 
+  <!-- Tu lógica principal -->
   <script type="module" src="script.js"></script>
+
+  <!-- JS auxiliar mínimo (NO toca tu script.js) -->
   <script>
-    const sidebar = document.getElementById('sidebar');
-    const toggle = document.getElementById('sidebarToggle');
-    if (toggle) toggle.addEventListener('click', ()=> sidebar.classList.toggle('hidden'));
+    (function () {
+      // Asegurar que sidebar toggle opere siempre
+      const sidebar = document.getElementById('sidebar');
+      const toggle = document.getElementById('sidebarToggle');
+      if (toggle) toggle.addEventListener('click', () => sidebar.classList.toggle('hidden'));
+
+      // Al iniciar sesión como admin/logística, tu script.js llama a initAdmin().
+      // Este bloque sólo garantiza: NEUTRO visible por defecto y navegación entre tabs.
+      function showOnly(tabId) {
+        // Ocultar todas las subtabs
+        document.querySelectorAll('.subtab').forEach(t => t.classList.add('hidden'));
+        // Quitar "active" de todos los botones
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        // Mostrar la requerida
+        const el = document.getElementById('tab-' + tabId);
+        if (el) el.classList.remove('hidden');
+        // Activar botón correspondiente
+        const btn = document.querySelector('.tab-btn[data-tab="' + tabId + '"]');
+        if (btn) btn.classList.add('active');
+
+        // Disparadores compatibles con tu script.js
+        if (tabId === 'service' && typeof window.initServiceLists === 'function') {
+          window.initServiceLists();
+        }
+        if (tabId === 'dashboard' && typeof window.renderDashboardMetrics === 'function') {
+          window.renderDashboardMetrics();
+        }
+        if (tabId === 'combustible') {
+          if (!window._combustibleIniciado && typeof window.initCombustible === 'function') {
+            window.initCombustible().then(() => { window._combustibleIniciado = true; });
+          }
+        }
+      }
+
+      // Bind de botones laterales (una sola vez)
+      document.querySelectorAll('.tab-btn').forEach(b => {
+        b.addEventListener('click', () => showOnly(b.dataset.tab));
+      });
+
+      // Estado inicial NEUTRO (no activa ninguna tab hasta que el usuario elija)
+      // Esto evita que se abra dashboard o combustible automáticamente
+      // y es consistente con el "neutro" que pediste.
+      document.addEventListener('DOMContentLoaded', () => {
+        // Ocultamos todas las subtabs y mostramos sólo el neutro
+        document.querySelectorAll('.subtab').forEach(t => t.classList.add('hidden'));
+        const neutral = document.getElementById('tab-neutral');
+        if (neutral) neutral.classList.remove('hidden');
+
+        // Asegurar que no haya botón marcado como activo
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      });
+    })();
   </script>
 </body>
 </html>

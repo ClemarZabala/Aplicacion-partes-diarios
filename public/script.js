@@ -196,9 +196,6 @@ btnLogin.addEventListener("click", async () => {
   const rol = (u.rol || "").toLowerCase();
   userActive.textContent = u.nombre;
 
-  // Mostrar todo por defecto
-  document.querySelectorAll(".menu-item").forEach(btn => btn.classList.remove("hidden"));
-  document.querySelectorAll(".subtab").forEach(tab => tab.classList.remove("hidden"));
 
   if (rol === "admin" || rol === "administrativo") {
     // 🧭 ADMINISTRATIVO: acceso total
@@ -350,11 +347,15 @@ tabBtns?.forEach(b=>{
 tabBtns?.forEach(b=>{
   b.addEventListener("click", async ()=>{
     if (b.dataset.tab === "combustible") {
-      await initCombustible();
-      console.log("✅ Módulo Combustible inicializado");
+      if (!window._combustibleIniciado) {
+        await initCombustible();
+        window._combustibleIniciado = true; // solo la primera vez
+        console.log("✅ Módulo Combustible inicializado");
+      }
     }
   });
 });
+
 
 /****************  ADMIN INIT  ****************/
 async function initAdmin() {
@@ -367,13 +368,31 @@ async function initAdmin() {
     await renderPartes();
     await renderServiceTabla();
     await renderSinPartes();
-
-    // pinta el dashboard apenas inicia
     await liveDashboardMetrics();
+
+    // 🔹 Ocultar todas las tabs
+    document.querySelectorAll(".subtab").forEach(t => t.classList.add("hidden"));
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+
+    // 🔹 Mostrar solo el panel neutro
+    const neutral = document.getElementById("tab-neutral");
+    if (neutral) neutral.classList.remove("hidden");
+
+    // 🔹 Asegurar que Combustible quede oculto
+    const comb = document.getElementById("tab-combustible");
+    if (comb) comb.classList.add("hidden");
+
+    // Mostrar barra superior y sidebar
+    document.getElementById("topbar")?.classList.remove("hidden");
+    document.getElementById("sidebar")?.classList.remove("hidden");
+
   } finally {
     hideLoader();
   }
 }
+
+
+
 
 /***************  ADMIN: Usuarios  ****************/
 btnAddUsuario?.addEventListener("click", async ()=>{
@@ -909,15 +928,93 @@ async function addCargaCombustible() {
 async function renderTablaCargas() {
   if (!ccTablaBody) return;
   ccTablaBody.innerHTML = "";
+
   const q = query(collection(db, "cargasCombustible"), orderBy("timestamp", "desc"), limit(50));
   const snap = await getDocs(q);
+
   snap.forEach(d => {
     const c = d.data();
+    const id = d.id; // 🔹 Importante: necesitamos el ID del documento
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${c.fecha}</td><td>${c.interno}</td><td>${c.chofer}</td><td>${c.km}</td><td>${c.litros}</td><td>${c.tipo}</td><td>${c.origen}</td><td>${c.obs || "-"}</td>`;
+
+    tr.innerHTML = `
+      <td>${c.fecha}</td>
+      <td>${c.interno}</td>
+      <td>${c.chofer}</td>
+      <td>${c.km}</td>
+      <td>${c.litros}</td>
+      <td>${c.tipo}</td>
+      <td>${c.origen}</td>
+      <td>${c.obs || "-"}</td>
+      <td>
+        <button class="btn tiny edit" data-id="${id}">✏️</button>
+        <button class="btn tiny danger" data-del="${id}">🗑️</button>
+      </td>
+    `;
+
     ccTablaBody.appendChild(tr);
   });
+
+  // 🟢 BOTÓN ELIMINAR
+  ccTablaBody.querySelectorAll("[data-del]").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      if (!confirm("¿Eliminar esta carga de combustible?")) return;
+      await deleteDoc(doc(db, "cargasCombustible", btn.dataset.del));
+      renderTablaCargas(); // refrescar tabla
+      ccMsg.textContent = "Carga eliminada correctamente ✅";
+      ccMsg.style.color = "green";
+    });
+  });
+
+  // 🟢 BOTÓN EDITAR
+  ccTablaBody.querySelectorAll("[data-id]").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const id = btn.dataset.id;
+      const docRef = doc(db, "cargasCombustible", id);
+      const dSnap = await getDoc(docRef);
+      if (!dSnap.exists()) return;
+
+      const c = dSnap.data();
+
+      // Llenamos el formulario con los valores actuales
+      ccInterno.value = c.interno || "";
+      ccFecha.value   = c.fecha || "";
+      ccChofer.value  = c.chofer || "";
+      ccKm.value      = c.km || "";
+      ccLitros.value  = c.litros || "";
+      ccTipo.value    = c.tipo || "";
+      ccOrigen.value  = c.origen || "";
+      ccObs.value     = c.obs || "";
+
+      ccMsg.textContent = "Editando registro. Guardá para actualizar.";
+      ccMsg.style.color = "orange";
+
+      // Cambiamos el comportamiento del botón guardar
+      const btnGuardar = document.getElementById("btnGuardarCarga");
+      btnGuardar.textContent = "Actualizar carga";
+      btnGuardar.onclick = async () => {
+        const payload = {
+          interno: ccInterno.value,
+          fecha: ccFecha.value,
+          chofer: ccChofer.value,
+          km: Number(ccKm.value || 0),
+          litros: Number(ccLitros.value || 0),
+          tipo: ccTipo.value,
+          origen: ccOrigen.value,
+          obs: ccObs.value,
+          timestamp: serverTimestamp(),
+        };
+        await setDoc(docRef, payload);
+        ccMsg.textContent = "Carga actualizada ✅";
+        ccMsg.style.color = "green";
+        btnGuardar.textContent = "Guardar carga";
+        btnGuardar.onclick = addCargaCombustible; // restauramos acción original
+        renderTablaCargas();
+      };
+    });
+  });
 }
+
 
 /* ===== FUNCIONES AUXILIARES ===== */
 function groupBy(arr, key) {
