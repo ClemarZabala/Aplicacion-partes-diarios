@@ -169,16 +169,16 @@ async function cargarInternosCombo(){
   });
 }
 
-/****************  LOGIN  ****************/
+//****************  LOGIN CON ROLES (oculta secciones según rol) ****************/
 btnLogin.addEventListener("click", async () => {
   errorLogin.textContent = "";
-  if(!usuarioSel.value || !legajoInput.value){
-    errorLogin.textContent = "Elegí un usuario y cargá el legajo."; 
+  if (!usuarioSel.value || !legajoInput.value) {
+    errorLogin.textContent = "Elegí un usuario y cargá el legajo.";
     return;
   }
 
   const u = JSON.parse(usuarioSel.value);
-  if (u.legajo !== legajoInput.value){
+  if (u.legajo !== legajoInput.value) {
     errorLogin.textContent = "Legajo incorrecto.";
     return;
   }
@@ -186,26 +186,71 @@ btnLogin.addEventListener("click", async () => {
   usuarioActivo = u;
   localStorage.setItem("usuarioActivo", JSON.stringify(u));
 
-  if (u.rol === "admin") {
+  // Limpio interfaz base
+  sidebar.classList.add("hidden");
+  topbar.classList.add("hidden");
+  formSection.classList.add("hidden");
+  adminSection.classList.add("hidden");
+  loginSection.classList.add("hidden");
+
+  const rol = (u.rol || "").toLowerCase();
+  userActive.textContent = u.nombre;
+
+  // Mostrar todo por defecto
+  document.querySelectorAll(".menu-item").forEach(btn => btn.classList.remove("hidden"));
+  document.querySelectorAll(".subtab").forEach(tab => tab.classList.remove("hidden"));
+
+  if (rol === "admin" || rol === "administrativo") {
+    // 🧭 ADMINISTRATIVO: acceso total
     document.body.classList.add("admin-active");
     sidebar.classList.remove("hidden");
     topbar.classList.remove("hidden");
     adminSection.classList.remove("hidden");
-    formSection.classList.add("hidden");
-    loginSection.classList.add("hidden");
     await initAdmin();
+
+  } else if (rol === "logistica") {
+  // 🚛 LOGÍSTICA: acceso a todo excepto Usuarios y Service
+  document.body.classList.add("admin-active");
+  sidebar.classList.remove("hidden");
+  topbar.classList.remove("hidden");
+  adminSection.classList.remove("hidden");
+  await initAdmin();
+
+  // Esperar un instante para asegurar que el DOM esté renderizado
+  setTimeout(() => {
+    // Ocultar pestañas y secciones no permitidas
+    const btnUsuarios = document.querySelector('[data-tab="usuarios"]');
+    const tabUsuarios = document.getElementById("tab-usuarios");
+    const btnService  = document.querySelector('[data-tab="service"]');
+    const tabService  = document.getElementById("tab-service");
+
+    if (btnUsuarios) btnUsuarios.remove();
+    if (tabUsuarios) tabUsuarios.remove();
+    if (btnService) btnService.remove();
+    if (tabService) tabService.remove();
+
+    // Bloquea el acceso por función
+    const originalShowTab = window.showTab;
+    window.showTab = (tabId) => {
+      if (["usuarios", "service"].includes(tabId)) {
+        alert("No tenés permiso para acceder a esta sección.");
+        return;
+      }
+      if (typeof originalShowTab === "function") originalShowTab(tabId);
+    };
+  }, 200);
+
+
   } else {
+    // 👷 OPERARIO: solo parte diario
     document.body.classList.remove("admin-active");
     sidebar.classList.add("hidden");
     topbar.classList.add("hidden");
     formSection.classList.remove("hidden");
-    loginSection.classList.add("hidden");
-    userActive.textContent = `Usuario: ${u.nombre}`;
     fechaInput.value = today();
     await cargarInternosCombo();
   }
 });
-
 
 /****************  OPERARIO  ****************/
 cargoSel?.addEventListener("change", ()=>{
@@ -299,6 +344,15 @@ tabBtns?.forEach(b=>{
     target?.classList.remove("hidden");
     if (b.dataset.tab === "service") initServiceLists();
     if (b.dataset.tab === "dashboard") renderDashboardMetrics(); // mantiene compatibilidad
+  });
+});
+// === ACTIVAR INICIALIZACIÓN DEL MÓDULO DE COMBUSTIBLE ===
+tabBtns?.forEach(b=>{
+  b.addEventListener("click", async ()=>{
+    if (b.dataset.tab === "combustible") {
+      await initCombustible();
+      console.log("✅ Módulo Combustible inicializado");
+    }
   });
 });
 
@@ -759,3 +813,318 @@ window.addEventListener("load", () => {
     }, 800);
   }
 });
+/* ========================= COMBUSTIBLE (v1.2.3) ========================= */
+let ccInterno, ccFecha, ccChofer, ccKm, ccLitros, ccTipo, ccOrigen, ccObs, ccMsg, ccTablaBody;
+let gridInterno, gridChofer, btnCombustibleRefresh;
+
+function qs(id) { return document.getElementById(id); }
+
+function initCombustibleUIRefs() {
+  ccInterno = qs("cc-interno");
+  ccFecha   = qs("cc-fecha");
+  ccChofer  = qs("cc-chofer");
+  ccKm      = qs("cc-km");
+  ccLitros  = qs("cc-litros");
+  ccTipo    = qs("cc-tipo");
+  ccOrigen  = qs("cc-origen");
+  ccObs     = qs("cc-obs");
+  ccMsg     = qs("cc-msg");
+  ccTablaBody = qs("cc-tabla")?.querySelector("tbody");
+  gridInterno = qs("grid-interno");
+  gridChofer  = qs("grid-chofer");
+  btnCombustibleRefresh = qs("btnCombustibleRefresh");
+}
+
+/* ===== COMBOS ===== */
+async function cargarInternosEnCombustible() {
+  if (!ccInterno) return;
+  ccInterno.innerHTML = `<option value="">-- Seleccioná un interno --</option>`;
+  const snap = await getDocs(collection(db, "internos"));
+  snap.forEach(d => {
+    const opt = document.createElement("option");
+    opt.value = d.id;
+    opt.textContent = d.id;
+    ccInterno.appendChild(opt);
+  });
+}
+
+async function cargarChoferesEnCombustible() {
+  if (!ccChofer) return;
+
+  // Limpia el combo y agrega una opción inicial
+  ccChofer.innerHTML = `<option value="">-- Seleccioná un chofer --</option>`;
+
+  try {
+    const snap = await getDocs(collection(db, "usuarios"));
+
+    if (snap.empty) {
+      const opt = document.createElement("option");
+      opt.textContent = "⚠️ No hay usuarios cargados";
+      opt.disabled = true;
+      ccChofer.appendChild(opt);
+      return;
+    }
+
+    // Cargar todos los nombres (sin mostrar rol)
+    snap.forEach((d) => {
+      const u = d.data();
+      const opt = document.createElement("option");
+      opt.value = u.nombre;
+      opt.textContent = u.nombre;
+      ccChofer.appendChild(opt);
+    });
+  } catch (error) {
+    console.error("Error al cargar choferes:", error);
+  }
+}
+
+
+/* ===== AGREGAR CARGA ===== */
+async function addCargaCombustible() {
+  if (!ccInterno.value || !ccFecha.value || !ccLitros.value) {
+    ccMsg.textContent = "Completá Interno, Fecha y Litros.";
+    ccMsg.style.color = "red";
+    return;
+  }
+  const payload = {
+    interno: ccInterno.value,
+    fecha: ccFecha.value,
+    chofer: ccChofer.value,
+    km: Number(ccKm.value || 0),
+    litros: Number(ccLitros.value || 0),
+    tipo: ccTipo.value,
+    origen: ccOrigen.value,
+    obs: ccObs.value,
+    timestamp: serverTimestamp(),
+  };
+  await addDoc(collection(db, "cargasCombustible"), payload);
+  ccMsg.textContent = "Carga guardada correctamente ✅";
+  ccMsg.style.color = "green";
+  renderTablaCargas();
+  loadConsumoInterno("mes");
+  loadConsumoChofer("mes");
+}
+
+/* ===== TABLA ===== */
+async function renderTablaCargas() {
+  if (!ccTablaBody) return;
+  ccTablaBody.innerHTML = "";
+  const q = query(collection(db, "cargasCombustible"), orderBy("timestamp", "desc"), limit(50));
+  const snap = await getDocs(q);
+  snap.forEach(d => {
+    const c = d.data();
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${c.fecha}</td><td>${c.interno}</td><td>${c.chofer}</td><td>${c.km}</td><td>${c.litros}</td><td>${c.tipo}</td><td>${c.origen}</td><td>${c.obs || "-"}</td>`;
+    ccTablaBody.appendChild(tr);
+  });
+}
+
+/* ===== FUNCIONES AUXILIARES ===== */
+function groupBy(arr, key) {
+  const map = new Map();
+  arr.forEach(it => {
+    const k = it[key] || "";
+    if (!map.has(k)) map.set(k, []);
+    map.get(k).push(it);
+  });
+  return map;
+}
+function sum(arr, key) { return arr.reduce((a, b) => a + Number(b[key] || 0), 0); }
+
+let currentRangeInterno = "mes";
+let currentRangeChofer = "mes";
+
+function rangoFechas(range) {
+  const hoy = new Date();
+  let desde, hasta = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate(), 23, 59, 59);
+
+  range = range.toLowerCase().trim();
+
+  if (range.includes("semana")) {
+    desde = new Date(hoy);
+    desde.setDate(hoy.getDate() - 7);
+  } else if (range.includes("mes")) {
+    desde = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+  } else {
+    desde = new Date(2000, 0, 1);
+  }
+
+  // Normalizamos horas para evitar errores de comparación
+  desde.setHours(0, 0, 0, 0);
+  hasta.setHours(23, 59, 59, 999);
+  return { desde, hasta };
+}
+
+
+/* ===== CONSUMO POR INTERNO ===== */
+async function loadConsumoInterno(range) {
+  currentRangeInterno = range;
+  gridInterno.innerHTML = "";
+  const { desde, hasta } = rangoFechas(range);
+  const snap = await getDocs(collection(db, "cargasCombustible"));
+  const registros = [];
+  snap.forEach(d => {
+    const c = d.data();
+    const f = new Date(c.fecha);
+    if (range === "total" || (f >= desde && f <= hasta)) registros.push(c);
+  });
+
+  const byInt = groupBy(registros, "interno");
+
+  byInt.forEach((items, interno) => {
+    // solo válidas
+    const cargas = items.filter(i => i.km > 0 && i.litros > 0);
+    if (cargas.length < 2) return;
+
+    // ordenar por KM ascendente
+    cargas.sort((a, b) => a.km - b.km);
+
+    const ultima = cargas[cargas.length - 1];
+    const penultima = cargas[cargas.length - 2];
+
+    const kmRecorridos = ultima.km - penultima.km;
+    const litrosConsumidos = ultima.litros;
+    const prom = kmRecorridos > 0 ? (litrosConsumidos / kmRecorridos) * 100 : null;
+
+    const litrosTot = sum(cargas, "litros");
+
+    const card = document.createElement("div");
+    card.className = "dash-card";
+    card.innerHTML = `
+      <h4>${interno}</h4>
+      <small>Última carga: ${ultima?.fecha || "-"}</small>
+      <div>Promedio: ${prom ? prom.toFixed(2) + " L/100 km" : "—"}</div>
+      <div>Total cargado: ${litrosTot.toFixed(0)} L</div>
+    `;
+    gridInterno.appendChild(card);
+  });
+}
+
+/* ===== CONSUMO POR CHOFER ===== */
+async function loadConsumoChofer(range) {
+  currentRangeChofer = range;
+  gridChofer.innerHTML = "";
+  const { desde, hasta } = rangoFechas(range);
+  const snap = await getDocs(collection(db, "cargasCombustible"));
+  const registros = [];
+  snap.forEach(d => {
+    const c = d.data();
+    const f = new Date(c.fecha);
+    if (range === "total" || (f >= desde && f <= hasta)) registros.push(c);
+  });
+
+  const byCh = groupBy(registros, "chofer");
+  for (const [chofer, items] of byCh.entries()) {
+    const cargas = items.filter(i => i.km > 0 && i.litros > 0);
+    if (cargas.length < 2) continue;
+    cargas.sort((a, b) => a.km - b.km);
+
+    const ultima = cargas[cargas.length - 1];
+    const penultima = cargas[cargas.length - 2];
+    const kmRecorridos = ultima.km - penultima.km;
+    const litrosConsumidos = ultima.litros;
+    const prom = kmRecorridos > 0 ? (litrosConsumidos / kmRecorridos) * 100 : null;
+    const litrosTot = sum(cargas, "litros");
+
+    const card = document.createElement("div");
+    card.className = "dash-card";
+    card.innerHTML = `
+      <h4>${chofer || "(sin chofer)"}</h4>
+      <small>Última carga: ${ultima?.fecha || "-"}</small>
+      <div>Promedio: ${prom ? prom.toFixed(2) + " L/100 km" : "—"}</div>
+      <div>Total cargado: ${litrosTot.toFixed(0)} L</div>
+    `;
+    gridChofer.appendChild(card);
+  }
+}
+
+/* ===== INIT ===== */
+async function initCombustible() {
+  initCombustibleUIRefs();
+  await cargarInternosEnCombustible();
+  await cargarChoferesEnCombustible();
+  document.getElementById("btnGuardarCarga")?.addEventListener("click", addCargaCombustible);
+  btnCombustibleRefresh?.addEventListener("click", () => {
+    renderTablaCargas();
+    loadConsumoInterno(currentRangeInterno);
+    loadConsumoChofer(currentRangeChofer);
+  });
+  renderTablaCargas();
+  loadConsumoInterno("mes");
+  loadConsumoChofer("mes");
+    initCombustibleTabs();
+
+}
+
+/* ===== SUBTABS (Solapas de Combustible) ===== */
+function bindCombustibleSubtabs() {
+  const buttons = document.querySelectorAll(".subtab-btn");
+  const contents = document.querySelectorAll(".subtab-content");
+  if (!buttons.length || !contents.length) return;
+
+  buttons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      // Quitar estado activo de todos los botones
+      buttons.forEach((b) => b.classList.remove("active"));
+      // Ocultar todos los contenidos
+      contents.forEach((c) => c.classList.add("hidden"));
+      // Activar el botón actual
+      btn.classList.add("active");
+      // Mostrar la vista correspondiente
+      const targetId = btn.dataset.subtab;
+      const targetEl = document.getElementById("subtab-" + targetId);
+      if (targetEl) targetEl.classList.remove("hidden");
+    });
+  });
+}
+
+// Ejecutar al iniciar el módulo
+function initCombustibleTabs() {
+  bindCombustibleSubtabs();
+  // Asegura que la primera pestaña se vea al inicio
+  const firstBtn = document.querySelector(".subtab-btn");
+  if (firstBtn) firstBtn.click();
+}
+
+/* ======== NAVEGACIÓN ENTRE SUBTABS DE COMBUSTIBLE ======== */
+document.querySelectorAll(".subtab-btn").forEach(btn => {
+  btn.addEventListener("click", async () => {
+    // Quitar clase "active" de todos los botones
+    document.querySelectorAll(".subtab-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+
+    // Ocultar todos los contenidos de subtabs
+    document.querySelectorAll(".subtab-content").forEach(c => c.classList.add("hidden"));
+
+    // Mostrar el contenido correspondiente
+    const targetId = "subtab-" + btn.dataset.subtab;
+    const targetEl = document.getElementById(targetId);
+    if (targetEl) targetEl.classList.remove("hidden");
+
+    // Si cambian a las secciones de resumen, actualizar datos
+    if (btn.dataset.subtab === "interno") await loadConsumoInterno(currentRangeInterno);
+    if (btn.dataset.subtab === "chofer") await loadConsumoChofer(currentRangeChofer);
+  });
+});
+
+/* ======== FILTROS DE RANGO ======== */
+document.querySelectorAll(".filter-btn").forEach(btn => {
+  btn.addEventListener("click", async () => {
+    const range = btn.dataset.range;
+    const parent = btn.closest(".filters-buttons");
+    if (!parent) return;
+
+    // Quitar "active" de todos los botones del grupo
+    parent.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+
+    // Ver qué sección estamos viendo (interno o chofer)
+    const section = btn.closest(".subtab-content");
+    if (section && section.id === "subtab-interno") await loadConsumoInterno(range);
+    if (section && section.id === "subtab-chofer") await loadConsumoChofer(range);
+  });
+});
+
+
+
+console.log("✅ Módulo Combustible actualizado (v1.2.3)");

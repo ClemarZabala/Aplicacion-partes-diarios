@@ -1,4 +1,4 @@
-<!doctype html>
+!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
@@ -36,6 +36,11 @@
         <button class="menu-item tab-btn" data-tab="partes"><i class="fa-solid fa-clipboard-list"></i> Partes</button>
         <button class="menu-item tab-btn" data-tab="service"><i class="fa-solid fa-screwdriver-wrench"></i> Service</button>
         <button class="menu-item tab-btn" data-tab="sinpartes"><i class="fa-regular fa-clock"></i> Sin partes (≥5 días)</button>
+      <!-- ===== NUEVO BOTÓN: COMBUSTIBLE (v1.2) ===== -->
+<button class="menu-item tab-btn" data-tab="combustible">
+  <i class="fa-solid fa-gas-pump"></i> Combustible
+</button>
+
       </nav>
     </aside>
 
@@ -152,6 +157,121 @@
       <!-- ADMIN -->
       <section id="admin-section" class="hidden">
         <div class="admin-layout">
+          <!-- ====================== MÓDULO COMBUSTIBLE (v1.2) ====================== -->
+<div id="tab-combustible" class="subtab hidden">
+  <div class="subtabs-menu">
+    <button class="subtab-btn active" data-subtab="carga">Carga de combustible</button>
+    <button class="subtab-btn" data-subtab="interno">Por interno</button>
+    <button class="subtab-btn" data-subtab="chofer">Por chofer</button>
+    <div class="flex-spacer"></div>
+    <button id="btnCombustibleRefresh" class="btn tiny" title="Refrescar datos">↻ Refrescar</button>
+  </div>
+
+  <!-- Subtab: CARGA -->
+  <div id="subtab-carga" class="subtab-content">
+    <div class="card">
+      <div class="card-header">
+        <h3>Registrar carga de combustible</h3>
+      </div>
+
+      <div class="grid cols-3 gap-12">
+        <div class="field">
+          <label>Interno</label>
+          <select id="cc-interno" class="input"></select>
+        </div>
+        <div class="field">
+          <label>Fecha</label>
+          <input id="cc-fecha" type="date" class="input" />
+        </div>
+        <div class="field">
+          <label>Chofer</label>
+          <select id="cc-chofer" class="input"></select>
+
+        </div>
+        <div class="field">
+          <label>Km actuales</label>
+          <input id="cc-km" type="number" class="input" placeholder="Ej: 85420" />
+        </div>
+        <div class="field">
+          <label>Litros cargados</label>
+          <input id="cc-litros" type="number" class="input" placeholder="Ej: 200" />
+        </div>
+        <div class="field">
+          <label>Tipo de carga</label>
+          <select id="cc-tipo" class="input">
+            <option value="Completa">Completa</option>
+            <option value="Parcial">Parcial</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Origen</label>
+          <select id="cc-origen" class="input">
+            <option value="Tanque">Tanque</option>
+            <option value="Camión Service">Camión Service</option>
+          </select>
+        </div>
+        <div class="field col-2">
+          <label>Observaciones</label>
+          <input id="cc-obs" class="input" placeholder="Notas u observaciones" />
+        </div>
+      </div>
+
+      <div class="card-actions">
+        <button id="btnGuardarCarga" class="btn success">
+          💾 Guardar carga
+        </button>
+        <span id="cc-msg" class="msg"></span>
+      </div>
+    </div>
+
+    <!-- Tabla de cargas -->
+    <div class="table-wrap">
+      <table class="table" id="cc-tabla">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Interno</th>
+            <th>Chofer</th>
+            <th>Km</th>
+            <th>Litros</th>
+            <th>Tipo</th>
+            <th>Origen</th>
+            <th>Obs.</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Subtab: POR INTERNO -->
+  <div id="subtab-interno" class="subtab-content hidden">
+    <div class="filters-header">
+      <h3>Consumo por Interno</h3>
+      <div class="filters-buttons">
+        <button class="btn tiny filter-btn active" data-range="mes">Mes actual</button>
+        <button class="btn tiny filter-btn" data-range="semana">Última semana</button>
+        <button class="btn tiny filter-btn" data-range="total">Total</button>
+      </div>
+    </div>
+    <div id="grid-interno" class="dashboard-grid"></div>
+  </div>
+
+  <!-- Subtab: POR CHOFER -->
+  <div id="subtab-chofer" class="subtab-content hidden">
+    <div class="filters-header">
+      <h3>Consumo por Chofer</h3>
+      <div class="filters-buttons">
+        <button class="btn tiny filter-btn active" data-range="mes">Mes actual</button>
+        <button class="btn tiny filter-btn" data-range="semana">Última semana</button>
+        <button class="btn tiny filter-btn" data-range="total">Total</button>
+      </div>
+    </div>
+    <div id="grid-chofer" class="dashboard-grid"></div>
+  </div>
+</div>
+<!-- ==================== FIN MÓDULO COMBUSTIBLE ==================== -->
+
           
 <!-- DASHBOARD -->
 <div id="tab-dashboard" class="subtab">

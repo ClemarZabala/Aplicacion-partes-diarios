@@ -888,3 +888,49 @@ body:not(.admin-active) .main{margin-left:0;}
     padding: 24px;
   }
 }
+
+
+/* ===== COMBUSTIBLE (v1.2) ===== */
+.subtabs-menu{
+  display:flex; align-items:center; gap:8px;
+  background: var(--surface);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:8px 10px;
+  margin-bottom:14px;
+}
+.subtab-btn{
+  border:1px solid var(--border);
+  background:#f8fafc;
+  color:#0f172a;
+  border-radius:8px;
+  padding:8px 12px;
+  cursor:pointer;
+}
+.subtab-btn.active{
+  background: var(--primary);
+  color:#fff;
+  border-color: var(--primary-600);
+}
+.subtab-content{}
+.flex-spacer{flex:1}
+
+#tab-combustible .filters-header{
+  display:flex; align-items:center; justify-content:space-between;
+  margin:12px 4px;
+}
+#tab-combustible .filters-buttons{ display:flex; gap:8px; }
+#tab-combustible .dashboard-grid{ margin-top: 12px; }
+
+/* Cards de consumo */
+.comb-card {
+  background: var(--surface);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:14px 16px;
+  box-shadow: var(--shadow);
+}
+.comb-card h4{ margin:0 0 6px; font-size:1.05rem; }
+.comb-card small{ color: var(--muted); display:block; margin-bottom:6px; }
+.comb-kpis{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.comb-kpis div{ font-weight:600; }

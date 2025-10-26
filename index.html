@@ -1,89 +1,425 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Welcome to Firebase Hosting</title>
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Control de Partes — Luciano S.A.</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+</head>
 
-    <!-- update the version number as needed -->
-    <script defer src="/__/firebase/12.4.0/firebase-app-compat.js"></script>
-    <!-- include only the Firebase features as you need -->
-    <script defer src="/__/firebase/12.4.0/firebase-auth-compat.js"></script>
-    <script defer src="/__/firebase/12.4.0/firebase-database-compat.js"></script>
-    <script defer src="/__/firebase/12.4.0/firebase-firestore-compat.js"></script>
-    <script defer src="/__/firebase/12.4.0/firebase-functions-compat.js"></script>
-    <script defer src="/__/firebase/12.4.0/firebase-messaging-compat.js"></script>
-    <script defer src="/__/firebase/12.4.0/firebase-storage-compat.js"></script>
-    <script defer src="/__/firebase/12.4.0/firebase-analytics-compat.js"></script>
-    <script defer src="/__/firebase/12.4.0/firebase-remote-config-compat.js"></script>
-    <script defer src="/__/firebase/12.4.0/firebase-performance-compat.js"></script>
-    <!-- 
-      initialize the SDK after all desired features are loaded, set useEmulator to false
-      to avoid connecting the SDK to running emulators.
-    -->
-    <script defer src="/__/firebase/init.js?useEmulator=true"></script>
+<body>
+  <!-- LOADER -->
+  <div id="appLoader" class="app-loader hidden">
+    <div class="spinner"></div>
+    <p>Cargando…</p>
+  </div>
 
-    <style media="screen">
-      body { background: #ECEFF1; color: rgba(0,0,0,0.87); font-family: Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; }
-      #message { background: white; max-width: 360px; margin: 100px auto 16px; padding: 32px 24px; border-radius: 3px; }
-      #message h2 { color: #ffa100; font-weight: bold; font-size: 16px; margin: 0 0 8px; }
-      #message h1 { font-size: 22px; font-weight: 300; color: rgba(0,0,0,0.6); margin: 0 0 16px;}
-      #message p { line-height: 140%; margin: 16px 0 24px; font-size: 14px; }
-      #message a { display: block; text-align: center; background: #039be5; text-transform: uppercase; text-decoration: none; color: white; padding: 16px; border-radius: 4px; }
-      #message, #message a { box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); }
-      #load { color: rgba(0,0,0,0.4); text-align: center; font-size: 13px; }
-      @media (max-width: 600px) {
-        body, #message { margin-top: 0; background: white; box-shadow: none; }
-        body { border-top: 16px solid #ffa100; }
-      }
-    </style>
-  </head>
-  <body>
-    <div id="message">
-      <h2>Welcome</h2>
-      <h1>Firebase Hosting Setup Complete</h1>
-      <p>You're seeing this because you've successfully setup Firebase Hosting. Now it's time to go build something extraordinary!</p>
-      <a target="_blank" href="https://firebase.google.com/docs/hosting/">Open Hosting Documentation</a>
+  <div class="layout">
+    <!-- SIDEBAR -->
+    <aside id="sidebar" class="sidebar hidden">
+      <div class="brand">
+        <div class="brand-icon"><i class="fa-solid fa-gear"></i></div>
+        <div>
+          <div class="title">Control de Partes</div>
+          <div class="subtitle">Luciano S.A.</div>
+        </div>
+      </div>
+
+      <nav class="menu">
+        <button class="menu-item tab-btn active" data-tab="dashboard"><i class="fa-solid fa-chart-line"></i> Resumen</button>
+        <button class="menu-item tab-btn" data-tab="usuarios"><i class="fa-solid fa-user-group"></i> Usuarios</button>
+        <button class="menu-item tab-btn" data-tab="internos"><i class="fa-solid fa-truck-front"></i> Internos</button>
+        <button class="menu-item tab-btn" data-tab="partes"><i class="fa-solid fa-clipboard-list"></i> Partes</button>
+        <button class="menu-item tab-btn" data-tab="service"><i class="fa-solid fa-screwdriver-wrench"></i> Service</button>
+        <button class="menu-item tab-btn" data-tab="sinpartes"><i class="fa-regular fa-clock"></i> Sin partes (≥5 días)</button>
+      </nav>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+      <!-- TOPBAR -->
+      <header class="topbar hidden" id="topbar">
+        <div class="topbar-left">
+          <button id="sidebarToggle" class="btn icon" title="Menú">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+          <h1 class="topbar-title">Panel</h1>
+        </div>
+        <div class="topbar-right">
+          <div class="user-pill">
+            <i class="fa-regular fa-circle-user"></i>
+            <span id="userActive">Usuario</span>
+            <button id="btnSalirAdmin" class="btn text danger"><i class="fa-solid fa-right-from-bracket"></i> Salir</button>
+          </div>
+        </div>
+      </header>
+
+      <!-- LOGIN -->
+      <section id="login-section" class="login-screen card p-24">
+        <div class="login-card">
+          <div class="login-header">
+            <div class="brand-icon lg"><i class="fa-solid fa-gear"></i></div>
+            <h2>Control de Partes</h2>
+            <p class="muted">Luciano S.A.</p>
+          </div>
+          <div class="field">
+            <label>Usuario</label>
+            <select id="usuario" class="input"></select>
+          </div>
+          <div class="field">
+            <label>Legajo</label>
+            <input id="legajo" class="input" placeholder="Ingresá tu legajo" />
+          </div>
+          <button id="btnLogin" class="btn primary">Ingresar</button>
+          <p id="errorLogin" class="msg err"></p>
+          <p id="msgNoUsers" class="msg muted hidden">No hay usuarios cargados.</p>
+        </div>
+      </section>
+
+      <!-- FORMULARIO OPERARIO -->
+      <section id="form-section" class="hidden">
+        <div class="grid cols-2 gap-24">
+          <div class="card">
+            <div class="card-header">
+              <h3>Parte Diario</h3>
+              <button id="btnSalir" class="btn text danger"><i class="fa-solid fa-right-from-bracket"></i> Salir</button>
+            </div>
+
+            <div class="grid cols-2 gap-12">
+              <div class="field">
+                <label>Fecha</label>
+                <input id="fecha" type="date" class="input" />
+              </div>
+              <div class="field">
+                <label>Interno</label>
+                <select id="interno" class="input"></select>
+              </div>
+              <div class="field col-2">
+                <label>Horas / Km finales</label>
+                <input id="final" class="input" placeholder="Ej: 245 (hs) o 85630 (km)" />
+              </div>
+              <div class="field col-2">
+                <label>¿Cargó combustible?</label>
+                <select id="cargoCombustible" class="input">
+                  <option value="no" selected>No</option>
+                  <option value="si">Sí</option>
+                </select>
+              </div>
+
+              <div id="datosCombustible" class="field col-1 hidden">
+                <label>Litros</label>
+                <input id="litros" type="number" class="input" placeholder="Ej: 120" />
+              </div>
+              <div id="datosCombustible2" class="field col-1 hidden">
+                <label>Km desde la última carga</label>
+                <input id="kmCarga" type="number" class="input" placeholder="Ej: 340" />
+              </div>
+
+              <div class="field col-2">
+                <label>Novedades</label>
+                <textarea id="novedades" class="input" rows="5" placeholder="Observaciones, novedades o comentarios"></textarea>
+              </div>
+            </div>
+
+            <div class="card-actions">
+              <button id="btnGuardar" class="btn success">
+                <i class="fa-solid fa-floppy-disk"></i> Guardar parte
+              </button>
+              <span id="msgGuardado" class="msg"></span>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h3>Último parte del interno</h3>
+              <span id="estadoServiceChip" class="badge">—</span>
+            </div>
+            <div class="kv">
+              <div><span>Fecha</span><strong id="uFecha">—</strong></div>
+              <div><span>Final</span><strong id="uFinal">—</strong></div>
+              <div><span>Combustible</span><strong id="uCombustible">—</strong></div>
+              <div><span>Novedades</span><strong id="uNovedades">—</strong></div>
+            </div>
+            <p class="muted small">Se calcula automáticamente por horas/km desde el último service.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ADMIN -->
+      <section id="admin-section" class="hidden">
+        <div class="admin-layout">
+          
+<!-- DASHBOARD -->
+<div id="tab-dashboard" class="subtab">
+  <section class="metrics">
+    <div class="metric-card">
+      <p>Internos activos</p>
+      <b id="mActivos">0</b>
     </div>
-    <p id="load">Firebase SDK Loading&hellip;</p>
+    <div class="metric-card">
+      <p>Próximos a service</p>
+      <b id="mProx">0</b>
+    </div>
+    <div class="metric-card danger">
+      <p>Equipos con service vencido</p>
+      <b id="mVencidos">0</b>
+    </div>
+  
 
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        const loadEl = document.querySelector('#load');
-        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
-        // // The Firebase SDK is initialized and available here!
-        //
-        // firebase.auth().onAuthStateChanged(user => { });
-        // firebase.database().ref('/path/to/ref').on('value', snapshot => { });
-        // firebase.firestore().doc('/foo/bar').get().then(() => { });
-        // firebase.functions().httpsCallable('yourFunction')().then(() => { });
-        // firebase.messaging().requestPermission().then(() => { });
-        // firebase.storage().ref('/path/to/ref').getDownloadURL().then(() => { });
-        // firebase.analytics(); // call to activate
-        // firebase.analytics().logEvent('tutorial_completed');
-        // firebase.performance(); // call to activate
-        //
-        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
 
-        try {
-          let app = firebase.app();
-          let features = [
-            'auth', 
-            'database', 
-            'firestore',
-            'functions',
-            'messaging', 
-            'storage', 
-            'analytics', 
-            'remoteConfig',
-            'performance',
-          ].filter(feature => typeof app[feature] === 'function');
-          loadEl.textContent = `Firebase SDK loaded with ${features.join(', ')}`;
-        } catch (e) {
-          console.error(e);
-          loadEl.textContent = 'Error loading the Firebase SDK, check the console.';
-        }
-      });
-    </script>
-  </body>
+<!-- COMBUSTIBLE (v1.2) -->
+<div id="tab-combustible" class="subtab hidden">
+  <div class="subtabs-menu">
+    <button class="subtab-btn active" data-subtab="carga">Carga de combustible</button>
+    <button class="subtab-btn" data-subtab="interno">Por interno</button>
+    <button class="subtab-btn" data-subtab="chofer">Por chofer</button>
+    <div class="flex-spacer"></div>
+    <button id="btnCombustibleRefresh" class="btn tiny" title="Refrescar datos">↻ Refrescar</button>
+  </div>
+
+  <!-- Subtab: CARGA -->
+  <div id="subtab-carga" class="subtab-content">
+    <div class="card">
+      <div class="card-header">
+        <h3>Registrar carga de combustible</h3>
+      </div>
+      <div class="grid cols-3 gap-12">
+        <div class="field">
+          <label>Interno</label>
+          <select id="cc-interno" class="input"></select>
+        </div>
+        <div class="field">
+          <label>Fecha</label>
+          <input id="cc-fecha" type="date" class="input" />
+        </div>
+        <div class="field">
+          <label>Chofer</label>
+          <input id="cc-chofer" class="input" placeholder="Nombre del chofer" />
+        </div>
+        <div class="field">
+          <label>Km actuales</label>
+          <input id="cc-km" type="number" class="input" placeholder="Ej: 85420" />
+        </div>
+        <div class="field">
+          <label>Litros cargados</label>
+          <input id="cc-litros" type="number" class="input" placeholder="Ej: 200" />
+        </div>
+        <div class="field">
+          <label>Tipo de carga</label>
+          <select id="cc-tipo" class="input">
+            <option value="Completa">Completa</option>
+            <option value="Parcial">Parcial</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Origen</label>
+          <select id="cc-origen" class="input">
+            <option value="Tanque">Tanque</option>
+            <option value="Camión Service">Camión Service</option>
+          </select>
+        </div>
+        <div class="field col-2">
+          <label>Observaciones</label>
+          <input id="cc-obs" class="input" placeholder="Notas u observaciones" />
+        </div>
+      </div>
+      <div class="card-actions">
+        <button id="btnGuardarCarga" class="btn success"><i class="fa-solid fa-floppy-disk"></i> Guardar carga</button>
+        <span id="cc-msg" class="msg"></span>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="table" id="cc-tabla">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Interno</th>
+            <th>Chofer</th>
+            <th>Km</th>
+            <th>Litros</th>
+            <th>Tipo</th>
+            <th>Origen</th>
+            <th>Obs.</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Subtab: POR INTERNO -->
+  <div id="subtab-interno" class="subtab-content hidden">
+    <div class="filters-header">
+      <h3>Consumo por Interno</h3>
+      <div class="filters-buttons">
+        <button class="btn tiny filter-btn active" data-range="mes">Mes actual</button>
+        <button class="btn tiny filter-btn" data-range="semana">Última semana</button>
+        <button class="btn tiny filter-btn" data-range="total">Total</button>
+      </div>
+    </div>
+    <div id="grid-interno" class="dashboard-grid"></div>
+  </div>
+
+  <!-- Subtab: POR CHOFER -->
+  <div id="subtab-chofer" class="subtab-content hidden">
+    <div class="filters-header">
+      <h3>Consumo por Chofer</h3>
+      <div class="filters-buttons">
+        <button class="btn tiny filter-btn active" data-range="mes">Mes actual</button>
+        <button class="btn tiny filter-btn" data-range="semana">Última semana</button>
+        <button class="btn tiny filter-btn" data-range="total">Total</button>
+      </div>
+    </div>
+    <div id="grid-chofer" class="dashboard-grid"></div>
+  </div>
+</div>
+
+</section>
+
+  <h3 class="mt-16">Estado general de los internos</h3>
+  <div id="dashboardCards" class="dashboard-grid"></div>
+</div>
+
+          </div>
+
+          <!-- USUARIOS -->
+          <div id="tab-usuarios" class="subtab hidden">
+            <div class="card-header">
+              <h3>Usuarios</h3>
+              <div class="grid cols-3 gap-12">
+                <input id="nu-nombre" class="input" placeholder="Nombre y apellido" />
+                <input id="nu-legajo" class="input" placeholder="Legajo" />
+                <select id="nu-rol" class="input">
+                  <option value="operario">Operario</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+              <button id="btnAddUsuario" class="btn primary">Agregar usuario</button>
+            </div>
+            <div class="table-wrap">
+              <table class="table">
+                <thead><tr><th>Nombre</th><th>Legajo</th><th>Rol</th><th></th></tr></thead>
+                <tbody id="tablaUsuarios"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- INTERNOS -->
+          <div id="tab-internos" class="subtab hidden">
+            <div class="card-header">
+              <h3>Internos</h3>
+              <div class="grid cols-6 gap-12">
+                <input id="ni-codigo" class="input" placeholder="Código" />
+                <select id="ni-tipo" class="input"><option value="horas">Horas</option><option value="km">Km</option></select>
+                <input id="ni-cada" class="input" placeholder="Cada (250 / 10000)" />
+                <input id="ni-ultvalor" class="input" placeholder="Últ. service valor" />
+                <input id="ni-ultfecha" class="input" type="date" />
+              </div>
+              <button id="btnAddInterno" class="btn primary">Agregar interno</button>
+            </div>
+            <div class="table-wrap">
+              <table class="table">
+                <thead><tr><th>Interno</th><th>Tipo</th><th>Prox. cada</th><th>Último service</th><th>Filtros</th><th>RM</th><th></th></tr></thead>
+                <tbody id="tablaInternos"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- PARTES -->
+          <div id="tab-partes" class="subtab hidden">
+            <div class="table-wrap">
+              <table class="table">
+                <thead>
+                  <tr><th>Fecha</th><th>Usuario</th><th>Interno</th><th>Final</th><th>Combustible</th><th>Novedades</th><th>Estado</th><th></th></tr>
+                </thead>
+                <tbody id="tablaPartes"></tbody>
+              </table>
+            </div>
+
+            <h4 class="mt-16">Últimos 5</h4>
+            <div class="table-wrap">
+              <table class="table">
+                <thead><tr><th>Fecha</th><th>Usuario</th><th>Interno</th><th>Final</th><th>Service</th></tr></thead>
+                <tbody id="tablaUltimos"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- SERVICE -->
+          <div id="tab-service" class="subtab hidden">
+            <div class="card-header">
+              <h3>Registrar Service</h3>
+              <div class="grid cols-4 gap-12">
+                <select id="sv-interno" class="input"></select>
+                <input id="sv-fecha" type="date" class="input" />
+                <input id="sv-valor" class="input" placeholder="Valor (km/hs)" />
+                <input id="sv-rm" class="input" placeholder="RM (opcional)" />
+              </div>
+              <div class="grid cols-3 gap-12">
+                <input id="sv-aceite-tipo" class="input" placeholder="Aceite tipo (opcional)" />
+                <input id="sv-aceite-litros" class="input" placeholder="Litros" />
+              </div>
+              <div class="filters-grid">
+                <div>
+                  <div class="filters-header"><strong>Aceite</strong><button id="sv-add-aceite" class="btn tiny">+ Filtro</button></div>
+                  <div id="sv-list-aceite" class="filters-list"></div>
+                </div>
+                <div>
+                  <div class="filters-header"><strong>Aire Primario</strong><button id="sv-add-airep" class="btn tiny">+ Filtro</button></div>
+                  <div id="sv-list-airep" class="filters-list"></div>
+                </div>
+                <div>
+                  <div class="filters-header"><strong>Aire Secundario</strong><button id="sv-add-aires" class="btn tiny">+ Filtro</button></div>
+                  <div id="sv-list-aires" class="filters-list"></div>
+                </div>
+                <div>
+                  <div class="filters-header"><strong>Combustible</strong><button id="sv-add-comb" class="btn tiny">+ Filtro</button></div>
+                  <div id="sv-list-comb" class="filters-list"></div>
+                </div>
+                <div>
+                  <div class="filters-header"><strong>Habitáculo</strong><button id="sv-add-hab" class="btn tiny">+ Filtro</button></div>
+                  <div id="sv-list-hab" class="filters-list"></div>
+                </div>
+                <div>
+                  <div class="filters-header"><strong>Hidráulico</strong><button id="sv-add-hid" class="btn tiny">+ Filtro</button></div>
+                  <div id="sv-list-hid" class="filters-list"></div>
+                </div>
+              </div>
+              <button id="btnAddService" class="btn success mt-12"><i class="fa-solid fa-screwdriver-wrench"></i> Guardar Service</button>
+            </div>
+
+            <div class="table-wrap mt-16">
+              <table class="table">
+                <thead><tr><th>Fecha</th><th>Interno</th><th>Valor</th><th>Tipo</th><th>Filtros</th><th>Aceite</th><th>RM/Notas</th></tr></thead>
+                <tbody id="tablaService"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- SIN PARTES -->
+          <div id="tab-sinpartes" class="subtab hidden">
+            <div class="card">
+              <h3>Internos sin partes recientes</h3>
+              <ul id="listaSinPartes" class="chips"></ul>
+              <h4 class="mt-16">Otros</h4>
+              <ul id="listaSinPartes2" class="chips"></ul>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="script.js"></script>
+  <script>
+    const sidebar = document.getElementById('sidebar');
+    const toggle = document.getElementById('sidebarToggle');
+    if (toggle) toggle.addEventListener('click', ()=> sidebar.classList.toggle('hidden'));
+  </script>
+</body>
 </html>
